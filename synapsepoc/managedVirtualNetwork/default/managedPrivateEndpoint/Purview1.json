@@ -1,0 +1,7 @@
+{
+	"name": "Purview1",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-synapse-one-click/providers/Microsoft.Purview/accounts/synapse-one-click",
+		"groupId": "account"
+	}
+}
