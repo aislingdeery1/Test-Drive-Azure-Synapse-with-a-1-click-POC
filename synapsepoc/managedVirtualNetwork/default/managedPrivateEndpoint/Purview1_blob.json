@@ -1,0 +1,7 @@
+{
+	"name": "Purview1_blob",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/managed-rg-synapse-one-click/providers/Microsoft.Storage/storageAccounts/scanwestus2qpvlmrx",
+		"groupId": "blob"
+	}
+}
