@@ -1,0 +1,7 @@
+{
+	"name": "Purview1_namespace",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/managed-rg-synapse-one-click/providers/Microsoft.EventHub/namespaces/Atlas-766e751b-f2fb-4374-9c9d-ff515a7e0dc3",
+		"groupId": "namespace"
+	}
+}
