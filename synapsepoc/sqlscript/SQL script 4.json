@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 4",
+	"properties": {
+		"content": {
+			"query": "CREATE SCHEMA [TEST];\n\n\nCREATE TABLE [TEST].[Table]\n(\n    col1 int NOT NULL\n)\nWITH\n(\n    DISTRIBUTION = HASH (col1),\n    CLUSTERED COLUMNSTORE INDEX\n)\nGO\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
