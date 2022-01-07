@@ -3,7 +3,11 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "TripFaresDataLakeStorageLinkedService",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"keyVaultName": "kvaisltx5fjw3gpqcmpoc",
+				"datalakeAccountName": "aisltx5fjw3gpqcmpoc"
+			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
@@ -21,21 +25,27 @@
 		},
 		"schema": [
 			{
+				"name": "movie",
 				"type": "String"
 			},
 			{
+				"name": "title",
 				"type": "String"
 			},
 			{
+				"name": "genres",
 				"type": "String"
 			},
 			{
+				"name": "year",
 				"type": "String"
 			},
 			{
+				"name": "Rating",
 				"type": "String"
 			},
 			{
+				"name": "Rotton Tomato",
 				"type": "String"
 			}
 		]
