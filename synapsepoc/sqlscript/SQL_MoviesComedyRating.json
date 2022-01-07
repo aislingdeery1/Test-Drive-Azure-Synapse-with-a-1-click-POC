@@ -1,0 +1,17 @@
+{
+	"name": "SQL_MoviesComedyRating",
+	"properties": {
+		"content": {
+			"query": "--DROP TABLE dbo.MoviesComedyRating\n\nIF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = 'MoviesComedyRating' AND O.TYPE = 'U' AND S.NAME = 'dbo')\nCREATE TABLE dbo.MoviesComedyRating\n    (\n     [Year] nvarchar(6),\n     [AverageComedyRating] float\n    )\nWITH\n    (\n    DISTRIBUTION = ROUND_ROBIN,\n     CLUSTERED COLUMNSTORE INDEX\n     -- HEAP\n    )\nGO\n\nCOPY INTO dbo.MoviesComedyRating\n(year 1, AverageComedyRating 2\n)\nFROM 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/movies/comedyratingsbyyear/'\nWITH\n(\n    FILE_TYPE = 'PARQUET'\n    ,MAXERRORS = 0\n    ,IDENTITY_INSERT = 'OFF'\n)",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
