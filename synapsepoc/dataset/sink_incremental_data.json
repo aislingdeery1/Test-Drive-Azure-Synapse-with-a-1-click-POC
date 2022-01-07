@@ -1,0 +1,21 @@
+{
+	"name": "sink_incremental_data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "TripFaresDataLakeStorageLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "@CONCAT('Incremental-', pipeline().RunId, '.txt')",
+				"folderPath": "raw/incremental_tutorial",
+				"fileSystem": "sandbox"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
