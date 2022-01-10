@@ -15,20 +15,6 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataflow": {
-						"referenceName": "tripFaresDataTransformations_copy2",
-						"type": "DataFlowReference",
-						"datasetParameters": {
-							"FaresDataCSV": {
-								"keyVaultName": "kvmsft",
-								"datalakeAccountName": "adlsmsft"
-							},
-							"source1": {
-								"keyVaultName": "kvmsft",
-								"datalakeAccountName": "adlsmsft"
-							}
-						}
-					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"

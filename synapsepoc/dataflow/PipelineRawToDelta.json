@@ -30,6 +30,8 @@
 				"source1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
+				"     fileSystem: 'sandbox',",
+				"     folderPath: 'curated/incremental_tutorial',",
 				"     mergeSchema: false,",
 				"     autoCompact: false,",
 				"     optimizedWrite: false,",
