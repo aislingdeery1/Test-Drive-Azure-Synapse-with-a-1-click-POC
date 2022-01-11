@@ -9,13 +9,21 @@
 				"datalakeAccountName": "aisltx5fjw3gpqcmpoc"
 			}
 		},
+		"parameters": {
+			"cw_folderPath": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "@CONCAT('Incremental-', pipeline().RunId, '.txt')",
-				"folderPath": "raw/incremental_tutorial",
+				"fileName": {
+					"value": "@CONCAT('Incremental-', pipeline().RunId, '.txt')",
+					"type": "Expression"
+				},
+				"folderPath": "@dataset().cw_folderPath",
 				"fileSystem": "sandbox"
 			},
 			"compressionCodec": "snappy"

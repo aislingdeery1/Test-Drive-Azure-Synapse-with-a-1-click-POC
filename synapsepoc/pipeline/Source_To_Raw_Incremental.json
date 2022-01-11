@@ -75,7 +75,16 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": [],
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "dbo.data_source_table"
+					},
+					{
+						"name": "Destination",
+						"value": "sandbox/raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}/"
+					}
+				],
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
@@ -114,7 +123,10 @@
 				"outputs": [
 					{
 						"referenceName": "sink_incremental_data",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"cw_folderPath": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
+						}
 					}
 				]
 			},
@@ -162,6 +174,11 @@
 				}
 			}
 		],
+		"parameters": {
+			"windowStart": {
+				"type": "string"
+			}
+		},
 		"folder": {
 			"name": "IncrementalPipeline"
 		},
