@@ -8,8 +8,8 @@
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
-				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+				"databaseName": "default",
+				"poolName": "Built-in"
 			},
 			"resultLimit": 5000
 		},
