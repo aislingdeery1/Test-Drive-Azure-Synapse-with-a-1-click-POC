@@ -20,7 +20,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@CONCAT('Incremental-', pipeline().RunId, '.txt')",
+					"value": "@CONCAT('Incremental-', pipeline().RunId)",
 					"type": "Expression"
 				},
 				"folderPath": "@dataset().cw_folderPath",
