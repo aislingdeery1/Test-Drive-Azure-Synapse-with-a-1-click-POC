@@ -2,11 +2,13 @@
 	"name": "raw_to_delta_sourcedata",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "TripFaresDataLakeStorageLinkedService",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"keyVaultName": "kvaisltx5fjw3gpqcmpoc",
-				"datalakeAccountName": "aisltx5fjw3gpqcmpoc"
+			"referenceName": "aisltx5fjw3gpqcmpoc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_folderPath": {
+				"type": "string",
+				"defaultValue": "curated/incremental_tutorial/"
 			}
 		},
 		"annotations": [],
@@ -14,7 +16,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": "raw/incremental_tutorial",
+				"folderPath": "@dataset().cw_folderPath",
 				"fileSystem": "sandbox"
 			},
 			"compressionCodec": "snappy"
