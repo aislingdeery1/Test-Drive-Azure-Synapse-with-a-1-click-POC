@@ -1,0 +1,26 @@
+{
+	"name": "DestinationDataset_9t7",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "aisltx5fjw3gpqcmpoc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_folderPath": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
+				"fileSystem": "sandbox"
+			}
+		}
+	}
+}
