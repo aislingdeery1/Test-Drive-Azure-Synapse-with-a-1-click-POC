@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Data flow1",
+				"name": "DataFlowRawToDelta",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "PipelineRawToDelta",
+						"referenceName": "DataFlowRawToDelta",
 						"type": "DataFlowReference",
 						"parameters": {
 							"windowStart": "addDays(currentTimestamp(),-2)",

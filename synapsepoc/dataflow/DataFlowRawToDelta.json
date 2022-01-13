@@ -1,5 +1,5 @@
 {
-	"name": "PipelineRawToDelta",
+	"name": "DataFlowRawToDelta",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
