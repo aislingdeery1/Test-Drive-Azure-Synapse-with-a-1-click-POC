@@ -17,7 +17,16 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "PipelineRawToDelta",
-						"type": "DataFlowReference"
+						"type": "DataFlowReference",
+						"parameters": {
+							"windowStart": "addDays(currentTimestamp(),-2)",
+							"windowEnd": "currentTimestamp()"
+						},
+						"datasetParameters": {
+							"source1": {
+								"cw_folderPath": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
+							}
+						}
 					},
 					"compute": {
 						"coreCount": 8,

@@ -15,7 +15,7 @@
 			"sinks": [
 				{
 					"linkedService": {
-						"referenceName": "TripFaresDataLakeStorageLinkedService",
+						"referenceName": "deltasinkls",
 						"type": "LinkedServiceReference"
 					},
 					"name": "sink1"
@@ -30,13 +30,11 @@
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
-				"     modifiedAfter: ($windowStart),",
-				"     modifiedBefore: ($windowEnd),",
 				"     format: 'parquet') ~> source1",
 				"source1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
-				"     fileSystem: 'sandbox',",
+				"     container: 'sandbox',",
 				"     folderPath: 'curated/incremental_tutorial',",
 				"     mergeSchema: false,",
 				"     autoCompact: false,",
@@ -46,11 +44,10 @@
 				"     insertable:true,",
 				"     updateable:false,",
 				"     upsertable:false,",
-				"     umask: 0022,",
-				"     preCommands: [],",
-				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink1"
+				"     skipDuplicateMapOutputs: true,",
+				"     preCommands: [],",
+				"     postCommands: []) ~> sink1"
 			]
 		}
 	}
