@@ -1,7 +1,7 @@
 {
-	"name": "CREATE EXTERNAL TABLE",
+	"name": "CREATE EXTERNAL TABLE PARQUET",
 	"properties": {
-		"description": "Dedicated SQL, not managing delta",
+		"description": "Serverless or Dedicated SQL, not managing delta. Toggle 'Connect to'",
 		"content": {
 			"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [incrementalload1] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[incrementalload1]\nGO",
 			"metadata": {
