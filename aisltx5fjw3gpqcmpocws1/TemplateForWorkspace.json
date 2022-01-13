@@ -516,7 +516,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/PipelineRawToDelta')]"
+				"[concat(variables('workspaceId'), '/dataflows/PipelineRawToDelta')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -2471,7 +2472,8 @@
 				},
 				"parameters": {
 					"cw_folderPath": {
-						"type": "string"
+						"type": "string",
+						"defaultValue": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
 					}
 				},
 				"annotations": [],
@@ -3173,11 +3175,16 @@
 						"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
 						"     windowEnd as timestamp (currentTimestamp())",
 						"}",
-						"source(allowSchemaDrift: true,",
+						"source(output(",
+						"          PersonID as integer,",
+						"          Name as string,",
+						"          LastModifytime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     ignoreNoFilesFound: false,",
 						"     format: 'parquet') ~> source1",
-						"source1 alterRow() ~> AlterRow1",
+						"source1 alterRow(upsertIf(isNull([PersonID]) == false())) ~> AlterRow1",
 						"AlterRow1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     format: 'delta',",
@@ -3187,9 +3194,9 @@
 						"     autoCompact: false,",
 						"     optimizedWrite: false,",
 						"     vacuum: 0,",
-						"     deletable:true,",
+						"     deletable:false,",
 						"     insertable:true,",
-						"     updateable:true,",
+						"     updateable:false,",
 						"     upsertable:true,",
 						"     keys:['PersonID'],",
 						"     skipDuplicateMapInputs: true,",
@@ -3454,7 +3461,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/raw/incremental_tutorial/2022/01/11/16/25/',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.blob.core.windows.net/sandbox/raw/incremental_tutorial/2022/01/13/00/00/',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -4180,6 +4187,26 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 8')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
 		}
 	]
 }
