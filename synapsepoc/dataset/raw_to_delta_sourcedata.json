@@ -7,7 +7,8 @@
 		},
 		"parameters": {
 			"cw_folderPath": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
 			}
 		},
 		"annotations": [],
