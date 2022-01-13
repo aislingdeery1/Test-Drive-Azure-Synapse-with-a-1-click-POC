@@ -3315,11 +3315,11 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/CREATE EXTERNAL TABLE')]",
+			"name": "[concat(parameters('workspaceName'), '/CREATE EXTERNAL TABLE PARQUET')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
-				"description": "Dedicated SQL, not managing delta",
+				"description": "Serverless or Dedicated SQL, not managing delta. Toggle 'Connect to'",
 				"content": {
 					"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [incrementalload1] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[incrementalload1]\nGO",
 					"metadata": {
@@ -3341,7 +3341,7 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID\n",
 					"metadata": {
 						"language": "sql"
 					},
@@ -3447,26 +3447,6 @@
 					},
 					"currentConnection": {
 						"databaseName": "EXTERNALDELTA",
-						"poolName": "Built-in"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 7')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"content": {
-					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.blob.core.windows.net/sandbox/raw/incremental_tutorial/2022/01/13/00/00/',\n        FORMAT = 'PARQUET'\n    ) AS [result]\n",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "master",
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
@@ -4189,17 +4169,17 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 8')]",
+			"name": "[concat(parameters('workspaceName'), '/CREATE EXTERNAL TABLE DELTA')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"content": {
-					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID",
+					"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseDeltaFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseDeltaFormat] \n\tWITH ( FORMAT_TYPE = DELTA)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [delta_incrementalload] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseDeltaFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[delta_incrementalload]\nGO",
 					"metadata": {
 						"language": "sql"
 					},
 					"currentConnection": {
-						"databaseName": "master",
+						"databaseName": "EXTERNALDELTA",
 						"poolName": "Built-in"
 					},
 					"resultLimit": 5000
