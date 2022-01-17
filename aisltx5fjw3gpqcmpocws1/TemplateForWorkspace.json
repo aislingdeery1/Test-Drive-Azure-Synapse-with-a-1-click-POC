@@ -816,7 +816,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]"
+				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]",
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
 			]
 		},
 		{
@@ -3172,6 +3173,9 @@
 			"type": "Microsoft.Synapse/workspaces/dataflows",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DELTA"
+				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
 					"sources": [
@@ -3243,6 +3247,9 @@
 			"type": "Microsoft.Synapse/workspaces/dataflows",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "Movies CSV"
+				},
 				"type": "MappingDataFlow",
 				"typeProperties": {
 					"sources": [
@@ -3410,6 +3417,9 @@
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DELTA"
+				},
 				"content": {
 					"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseDeltaFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseDeltaFormat] \n\tWITH ( FORMAT_TYPE = DELTA)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [delta_incrementalload] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseDeltaFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[delta_incrementalload]\nGO",
 					"metadata": {
@@ -3431,6 +3441,9 @@
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"description": "Serverless or Dedicated SQL, not managing delta. Toggle 'Connect to'",
+				"folder": {
+					"name": "INCREMENTAL DELTA"
+				},
 				"content": {
 					"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseParquetFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseParquetFormat] \n\tWITH ( FORMAT_TYPE = PARQUET)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [incrementalload1] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseParquetFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[incrementalload1]\nGO",
 					"metadata": {
@@ -3451,6 +3464,9 @@
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DELTA"
+				},
 				"content": {
 					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID\n",
 					"metadata": {
@@ -3467,10 +3483,13 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 1')]",
+			"name": "[concat(parameters('workspaceName'), '/CREATE TABLE DBO FARESDATA')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "TaxiData"
+				},
 				"content": {
 					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[FaresData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[payment_type] [nvarchar](max)  NULL,\n\t[fare_amount] [nvarchar](max)  NULL,\n\t[surcharge] [nvarchar](max)  NULL,\n\t[mta_tax] [nvarchar](max)  NULL,\n\t[tip_amount] [nvarchar](max)  NULL,\n\t[tolls_amount] [nvarchar](max)  NULL,\n\t[total_amount] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
 					"metadata": {
@@ -3491,6 +3510,9 @@
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "TaxiData"
+				},
 				"content": {
 					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[TripsData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[rate_code] [nvarchar](max)  NULL,\n\t[store_and_fwd_flag] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[dropoff_datetime] [nvarchar](max)  NULL,\n\t[passenger_count] [nvarchar](max)  NULL,\n\t[trip_time_in_secs] [nvarchar](max)  NULL,\n\t[trip_distance] [nvarchar](max)  NULL,\n\t[pickup_longitude] [nvarchar](max)  NULL,\n\t[pickup_latitude] [nvarchar](max)  NULL,\n\t[dropoff_longitude] [nvarchar](max)  NULL,\n\t[dropoff_latitude] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
 					"metadata": {
@@ -3507,10 +3529,13 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"name": "[concat(parameters('workspaceName'), '/CREATE TABLE AggregateTaxiData')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "TaxiData"
+				},
 				"content": {
 					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [tripFares].[AggregateTaxiData]\n( \n\t[payment_type] [nvarchar](max)  NULL,\n\t[average_fare] [float]  NULL,\n\t[total_trip_distance] [bigint]  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
 					"metadata": {
@@ -3527,10 +3552,13 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 4')]",
+			"name": "[concat(parameters('workspaceName'), '/CREATE TABLE FARES DATA')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "TaxiData"
+				},
 				"content": {
 					"query": "--CREATE SCHEMA [TEST];\n\nSET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [TEST].[FaresData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[payment_type] [nvarchar](max)  NULL,\n\t[fare_amount] [nvarchar](max)  NULL,\n\t[surcharge] [nvarchar](max)  NULL,\n\t[mta_tax] [nvarchar](max)  NULL,\n\t[tip_amount] [nvarchar](max)  NULL,\n\t[tolls_amount] [nvarchar](max)  NULL,\n\t[total_amount] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = REPLICATE, HEAP\n)\nGO",
 					"metadata": {
@@ -3551,6 +3579,9 @@
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "MoviesCSV"
+				},
 				"content": {
 					"query": "--DROP TABLE dbo.MoviesComedyRating\n\nIF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = 'MoviesComedyRating' AND O.TYPE = 'U' AND S.NAME = 'dbo')\nCREATE TABLE dbo.MoviesComedyRating\n    (\n     [Year] nvarchar(6),\n     [AverageComedyRating] float\n    )\nWITH\n    (\n    DISTRIBUTION = ROUND_ROBIN,\n     CLUSTERED COLUMNSTORE INDEX\n     -- HEAP\n    )\nGO\n\nCOPY INTO dbo.MoviesComedyRating\n(year 1, AverageComedyRating 2\n)\nFROM 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/movies/comedyratingsbyyear/'\nWITH\n(\n    FILE_TYPE = 'PARQUET'\n    ,MAXERRORS = 0\n    ,IDENTITY_INSERT = 'OFF'\n)",
 					"metadata": {
@@ -3571,6 +3602,9 @@
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "TaxiData"
+				},
 				"content": {
 					"query": "IF NOT EXISTS (SELECT * FROM sys.objects O JOIN sys.schemas S ON O.schema_id = S.schema_id WHERE O.NAME = 'NYCTaxiTripSmall' AND O.TYPE = 'U' AND S.NAME = 'dbo')\nCREATE TABLE dbo.NYCTaxiTripSmall\n    (\n     [DateID] int,\n     [MedallionID] int,\n     [HackneyLicenseID] int,\n     [PickupTimeID] int,\n     [DropoffTimeID] int,\n     [PickupGeographyID] int,\n     [DropoffGeographyID] int,\n     [PickupLatitude] float,\n     [PickupLongitude] float,\n     [PickupLatLong] nvarchar(4000),\n     [DropoffLatitude] float,\n     [DropoffLongitude] float,\n     [DropoffLatLong] nvarchar(4000),\n     [PassengerCount] int,\n     [TripDurationSeconds] int,\n     [TripDistanceMiles] float,\n     [PaymentType] nvarchar(4000),\n     [FareAmount] numeric(19,4),\n     [SurchargeAmount] numeric(19,4),\n     [TaxAmount] numeric(19,4),\n     [TipAmount] numeric(19,4),\n     [TollsAmount] numeric(19,4),\n     [TotalAmount] numeric(19,4)\n    )\nWITH\n    (\n    DISTRIBUTION = ROUND_ROBIN,\n     CLUSTERED COLUMNSTORE INDEX\n     -- HEAP\n    )\nGO\n\nCOPY INTO dbo.NYCTaxiTripSmall\n(DateID 1, MedallionID 2, HackneyLicenseID 3, PickupTimeID 4, DropoffTimeID 5,\nPickupGeographyID 6, DropoffGeographyID 7, PickupLatitude 8, PickupLongitude 9, \nPickupLatLong 10, DropoffLatitude 11, DropoffLongitude 12, DropoffLatLong 13, \nPassengerCount 14, TripDurationSeconds 15, TripDistanceMiles 16, PaymentType 17, \nFareAmount 18, SurchargeAmount 19, TaxAmount 20, TipAmount 21, TollsAmount 22, \nTotalAmount 23)\nFROM 'https://contosolake.dfs.core.windows.net/users/NYCTripSmall.parquet'\nWITH\n(\n    FILE_TYPE = 'PARQUET'\n    ,MAXERRORS = 0\n    ,IDENTITY_INSERT = 'OFF'\n)",
 					"metadata": {
