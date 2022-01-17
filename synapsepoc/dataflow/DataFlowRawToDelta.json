@@ -1,6 +1,9 @@
 {
 	"name": "DataFlowRawToDelta",
 	"properties": {
+		"folder": {
+			"name": "INCREMENTAL DELTA"
+		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [
@@ -40,7 +43,7 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet') ~> source1",
-				"source1 alterRow(upsertIf(isNull([PersonID]) == false())) ~> AlterRow1",
+				"source1 alterRow(upsertIf(isNull([PersonID])==false())) ~> AlterRow1",
 				"AlterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",

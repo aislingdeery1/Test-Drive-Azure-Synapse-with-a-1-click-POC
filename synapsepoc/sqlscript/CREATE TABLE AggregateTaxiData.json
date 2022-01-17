@@ -1,6 +1,9 @@
 {
-	"name": "SQL script 3",
+	"name": "CREATE TABLE AggregateTaxiData",
 	"properties": {
+		"folder": {
+			"name": "TaxiData"
+		},
 		"content": {
 			"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [tripFares].[AggregateTaxiData]\n( \n\t[payment_type] [nvarchar](max)  NULL,\n\t[average_fare] [float]  NULL,\n\t[total_trip_distance] [bigint]  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
 			"metadata": {
