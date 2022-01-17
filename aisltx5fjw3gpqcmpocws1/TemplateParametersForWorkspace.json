@@ -5,6 +5,9 @@
 		"workspaceName": {
 			"value": "aisltx5fjw3gpqcmpocws1"
 		},
+		"AzureDataLakeStorage1_accountKey": {
+			"value": ""
+		},
 		"TripFaresSynapseAnalyticsLinkedService_connectionString": {
 			"value": ""
 		},
@@ -19,6 +22,15 @@
 		},
 		"sql_db_synapse_one_click_source_connectionString": {
 			"value": ""
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net"
+		},
+		"AzureMLService1_properties_typeProperties_subscriptionId": {
+			"value": "798e3660-52d8-404d-a9b2-446b348f4e80"
+		},
+		"AzureMLService1_properties_typeProperties_resourceGroupName": {
+			"value": "rg-data-consumption"
 		},
 		"HttpServerTripDataLinkedService_properties_typeProperties_url": {
 			"value": "https://raw.githubusercontent.com/Azure/Test-Drive-Azure-Synapse-with-a-1-click-POC/main/tripDataAndFaresCSV/trip-data.csv"

@@ -7,6 +7,10 @@
 			"metadata": "Workspace name",
 			"defaultValue": "aisltx5fjw3gpqcmpocws1"
 		},
+		"AzureDataLakeStorage1_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'AzureDataLakeStorage1'"
+		},
 		"TripFaresSynapseAnalyticsLinkedService_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'TripFaresSynapseAnalyticsLinkedService'"
@@ -26,6 +30,18 @@
 		"sql_db_synapse_one_click_source_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'sql_db_synapse_one_click_source'"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net"
+		},
+		"AzureMLService1_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "798e3660-52d8-404d-a9b2-446b348f4e80"
+		},
+		"AzureMLService1_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "rg-data-consumption"
 		},
 		"HttpServerTripDataLinkedService_properties_typeProperties_url": {
 			"type": "string",
@@ -463,7 +479,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Data flow1",
+						"name": "DataFlowRawToDelta",
 						"type": "ExecuteDataFlow",
 						"dependsOn": [],
 						"policy": {
@@ -476,7 +492,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "PipelineRawToDelta",
+								"referenceName": "DataFlowRawToDelta",
 								"type": "DataFlowReference",
 								"parameters": {
 									"windowStart": "addDays(currentTimestamp(),-2)",
@@ -516,8 +532,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/PipelineRawToDelta')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/dataflows/DataFlowRawToDelta')]"
 			]
 		},
 		{
@@ -699,6 +714,36 @@
 							"referenceName": "sql_db_synapse_one_click_source",
 							"type": "LinkedServiceReference"
 						}
+					},
+					{
+						"name": "Execute Pipeline Raw_To_Delta_Incremental",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "IncrementalCopyActivity",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "Raw_To_Delta_Incremental",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"windowStart": {
+									"value": "@pipeline().parameters.windowStart",
+									"type": "Expression"
+								},
+								"windowEnd": {
+									"value": "@pipeline().parameters.windowStart",
+									"type": "Expression"
+								}
+							}
+						}
 					}
 				],
 				"policy": {
@@ -720,7 +765,8 @@
 				"[concat(variables('workspaceId'), '/datasets/source_watermark')]",
 				"[concat(variables('workspaceId'), '/datasets/data_source_table')]",
 				"[concat(variables('workspaceId'), '/datasets/sink_incremental_data')]",
-				"[concat(variables('workspaceId'), '/linkedServices/sql_db_synapse_one_click_source')]"
+				"[concat(variables('workspaceId'), '/linkedServices/sql_db_synapse_one_click_source')]",
+				"[concat(variables('workspaceId'), '/pipelines/Raw_To_Delta_Incremental')]"
 			]
 		},
 		{
@@ -2704,6 +2750,51 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/AzureDataLakeStorage1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('AzureDataLakeStorage1_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStorage1_accountKey')]"
+					}
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/AzureMLService1')]",
+			"type": "Microsoft.Synapse/workspaces/linkedServices",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "AzureMLService",
+				"typeProperties": {
+					"subscriptionId": "[parameters('AzureMLService1_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('AzureMLService1_properties_typeProperties_resourceGroupName')]",
+					"mlWorkspaceName": "aml-azuremachinelearning",
+					"authentication": "MSI"
+				},
+				"connectVia": {
+					"referenceName": "AutoResolveIntegrationRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/HttpServerTripDataLinkedService')]",
 			"type": "Microsoft.Synapse/workspaces/linkedServices",
 			"apiVersion": "2019-06-01-preview",
@@ -3077,6 +3168,77 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/DataFlowRawToDelta')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "raw_to_delta_sourcedata",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "deltasinkls",
+								"type": "LinkedServiceReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
+						"     windowEnd as timestamp (currentTimestamp())",
+						"}",
+						"source(output(",
+						"          PersonID as integer,",
+						"          Name as string,",
+						"          LastModifytime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> source1",
+						"source1 alterRow(upsertIf(isNull([PersonID])==false())) ~> AlterRow1",
+						"AlterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'sandbox',",
+						"     folderPath: 'curated/incremental_tutorial',",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:['PersonID'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/raw_to_delta_sourcedata')]",
+				"[concat(variables('workspaceId'), '/linkedServices/deltasinkls')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Dataflow1')]",
 			"type": "Microsoft.Synapse/workspaces/dataflows",
 			"apiVersion": "2019-06-01-preview",
@@ -3138,77 +3300,6 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/datasets/raw_MoviesDB')]",
 				"[concat(variables('workspaceId'), '/datasets/Parquet1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/PipelineRawToDelta')]",
-			"type": "Microsoft.Synapse/workspaces/dataflows",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "raw_to_delta_sourcedata",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"linkedService": {
-								"referenceName": "deltasinkls",
-								"type": "LinkedServiceReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [
-						{
-							"name": "AlterRow1"
-						}
-					],
-					"scriptLines": [
-						"parameters{",
-						"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
-						"     windowEnd as timestamp (currentTimestamp())",
-						"}",
-						"source(output(",
-						"          PersonID as integer,",
-						"          Name as string,",
-						"          LastModifytime as timestamp",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false,",
-						"     format: 'parquet') ~> source1",
-						"source1 alterRow(upsertIf(isNull([PersonID]) == false())) ~> AlterRow1",
-						"AlterRow1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     format: 'delta',",
-						"     container: 'sandbox',",
-						"     folderPath: 'curated/incremental_tutorial',",
-						"     mergeSchema: false,",
-						"     autoCompact: false,",
-						"     optimizedWrite: false,",
-						"     vacuum: 0,",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:true,",
-						"     keys:['PersonID'],",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     preCommands: [],",
-						"     postCommands: []) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('workspaceId'), '/datasets/raw_to_delta_sourcedata')]",
-				"[concat(variables('workspaceId'), '/linkedServices/deltasinkls')]"
 			]
 		},
 		{
@@ -3311,6 +3402,26 @@
 			"properties": {
 				"type": "ManagedIdentity",
 				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/CREATE EXTERNAL TABLE DELTA')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseDeltaFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseDeltaFormat] \n\tWITH ( FORMAT_TYPE = DELTA)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [delta_incrementalload] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseDeltaFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[delta_incrementalload]\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "EXTERNALDELTA",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
 			},
 			"dependsOn": []
 		},
@@ -3436,26 +3547,6 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 6')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"content": {
-					"query": "SELECT TOP (100) [PersonID]\n,[Name]\n,[LastModifytime]\n FROM [dbo].[incrementalload1]",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "EXTERNALDELTA",
-						"poolName": "Built-in"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/SQL_MoviesComedyRating')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -3500,6 +3591,9 @@
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "Machine Learning"
+				},
 				"nbformat": 4,
 				"nbformat_minor": 2,
 				"bigDataPool": {
@@ -3515,14 +3609,13 @@
 					"conf": {
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
-						"spark.dynamicAllocation.maxExecutors": "2"
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "cb93a764-2f7e-46f6-b9c3-b05679e886f1"
 					}
 				},
 				"metadata": {
 					"saveOutput": true,
-					"synapse_widget": {
-						"version": "0.1"
-					},
+					"enableDebugMode": false,
 					"kernelspec": {
 						"name": "synapse_pyspark",
 						"display_name": "Synapse PySpark"
@@ -3533,16 +3626,10 @@
 					"a365ComputeOptions": {
 						"id": "/subscriptions/4eeedd72-d937-4243-86d1-c3982a84d924/resourceGroups/nashahzsfin/providers/Microsoft.Synapse/workspaces/mfstspdjvzuh3xeu2pocws1/bigDataPools/ws1sparkpool1",
 						"name": "ws1sparkpool1",
-						"type": "Spark",
-						"endpoint": "https://mfstspdjvzuh3xeu2pocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
 						"auth": {
 							"type": "AAD",
 							"authResource": "https://dev.azuresynapse.net"
-						},
-						"sparkVersion": "2.4",
-						"nodeCount": 5,
-						"cores": 8,
-						"memory": 56
+						}
 					}
 				},
 				"cells": [
@@ -3832,147 +3919,13 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/Notebook 1')]",
-			"type": "Microsoft.Synapse/workspaces/notebooks",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"nbformat": 4,
-				"nbformat_minor": 2,
-				"bigDataPool": {
-					"referenceName": "ws1sparkpool1",
-					"type": "BigDataPoolReference"
-				},
-				"sessionProperties": {
-					"driverMemory": "56g",
-					"driverCores": 8,
-					"executorMemory": "56g",
-					"executorCores": 8,
-					"numExecutors": 2,
-					"conf": {
-						"spark.dynamicAllocation.enabled": "false",
-						"spark.dynamicAllocation.minExecutors": "2",
-						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "a88bfb60-baa8-4548-889d-4f386ae5601b"
-					}
-				},
-				"metadata": {
-					"saveOutput": true,
-					"enableDebugMode": false,
-					"kernelspec": {
-						"name": "synapse_pyspark",
-						"display_name": "Synapse PySpark"
-					},
-					"language_info": {
-						"name": "python"
-					},
-					"a365ComputeOptions": {
-						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-synapse-one-click/providers/Microsoft.Synapse/workspaces/aisltx5fjw3gpqcmpocws1/bigDataPools/ws1sparkpool1",
-						"name": "ws1sparkpool1",
-						"type": "Spark",
-						"endpoint": "https://aisltx5fjw3gpqcmpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
-						"auth": {
-							"type": "AAD",
-							"authResource": "https://dev.azuresynapse.net"
-						},
-						"sparkVersion": "2.4",
-						"nodeCount": 5,
-						"cores": 8,
-						"memory": 56
-					}
-				},
-				"cells": [
-					{
-						"cell_type": "code",
-						"metadata": {
-							"microsoft": {
-								"language": "python"
-							},
-							"collapsed": false
-						},
-						"source": [
-							"%%pyspark\r\n",
-							"df = spark.read.load('abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net/raw/incremental_tutorial/', format='text')\r\n",
-							"display(df.limit(20))"
-						],
-						"outputs": [],
-						"execution_count": 1
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
-			"type": "Microsoft.Synapse/workspaces/notebooks",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"nbformat": 4,
-				"nbformat_minor": 2,
-				"bigDataPool": {
-					"referenceName": "ws1sparkpool1",
-					"type": "BigDataPoolReference"
-				},
-				"sessionProperties": {
-					"driverMemory": "56g",
-					"driverCores": 8,
-					"executorMemory": "56g",
-					"executorCores": 8,
-					"numExecutors": 2,
-					"conf": {
-						"spark.dynamicAllocation.enabled": "false",
-						"spark.dynamicAllocation.minExecutors": "2",
-						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "c4cee013-c9eb-44be-a5e3-ecbff0f7bfae"
-					}
-				},
-				"metadata": {
-					"saveOutput": true,
-					"enableDebugMode": false,
-					"kernelspec": {
-						"name": "synapse_pyspark",
-						"display_name": "Synapse PySpark"
-					},
-					"language_info": {
-						"name": "python"
-					},
-					"a365ComputeOptions": {
-						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-synapse-one-click/providers/Microsoft.Synapse/workspaces/aisltx5fjw3gpqcmpocws1/bigDataPools/ws1sparkpool1",
-						"name": "ws1sparkpool1",
-						"type": "Spark",
-						"endpoint": "https://aisltx5fjw3gpqcmpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
-						"auth": {
-							"type": "AAD",
-							"authResource": "https://dev.azuresynapse.net"
-						},
-						"sparkVersion": "2.4",
-						"nodeCount": 5,
-						"cores": 8,
-						"memory": 56
-					}
-				},
-				"cells": [
-					{
-						"cell_type": "code",
-						"metadata": {
-							"collapsed": false
-						},
-						"source": [
-							"%%pyspark\r\n",
-							"df = spark.read.load('abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net/raw/incremental_tutorial/2022/01/11/00/00/Incremental-148ff909-3e7c-497c-8dd0-1cf6adc85adb.txt', format='text')\r\n",
-							"display(df.limit(10))"
-						],
-						"outputs": [],
-						"execution_count": 1
-					}
-				]
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/Write To Delta')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
+				"folder": {
+					"name": "Data Management"
+				},
 				"nbformat": 4,
 				"nbformat_minor": 2,
 				"bigDataPool": {
@@ -3989,7 +3942,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "3011b041-cd6f-4658-960b-b29619875439"
+						"spark.autotune.trackingId": "843c2dc3-d7a5-47f7-b333-877611e0d49d"
 					}
 				},
 				"metadata": {
@@ -4121,6 +4074,18 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/default/AzureMLService1')]",
+			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"privateLinkResourceId": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-data-consumption/providers/Microsoft.MachineLearningServices/workspaces/aml-azuremachinelearning",
+				"groupId": "amlworkspace"
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/default/Purview1')]",
 			"type": "Microsoft.Synapse/workspaces/managedVirtualNetworks/managedPrivateEndpoints",
 			"apiVersion": "2019-06-01-preview",
@@ -4167,26 +4132,6 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
 			]
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/CREATE EXTERNAL TABLE DELTA')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"content": {
-					"query": "--DROP TABLE [dbo].[incrementalload]\n\n--NOTS: set database to something other than master\nIF NOT EXISTS (SELECT * FROM sys.external_file_formats WHERE name = 'SynapseDeltaFormat') \n\tCREATE EXTERNAL FILE FORMAT [SynapseDeltaFormat] \n\tWITH ( FORMAT_TYPE = DELTA)\nGO\n\nIF NOT EXISTS (SELECT * FROM sys.external_data_sources WHERE name = 'sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1') \n\tCREATE EXTERNAL DATA SOURCE [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1] \n\tWITH (\n\t\tLOCATION = 'abfss://sandbox@aisltx5fjw3gpqcmpoc.dfs.core.windows.net' \n\t)\nGO\n\nCREATE EXTERNAL TABLE [delta_incrementalload] (\n\t[PersonID] int,\n\t[Name] nvarchar(4000),\n\t[LastModifytime] datetime2(7)\n\t)\n\tWITH (\n\tLOCATION = 'curated/incremental_tutorial/',\n\tDATA_SOURCE = [sandbox_aisltx5fjw3gpqcmpoc_dfs_core_windows_net1],\n\tFILE_FORMAT = [SynapseDeltaFormat]\n\t)\nGO\n\n\nSELECT TOP 100 * FROM [dbo].[delta_incrementalload]\nGO",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "EXTERNALDELTA",
-						"poolName": "Built-in"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
 		}
 	]
 }
