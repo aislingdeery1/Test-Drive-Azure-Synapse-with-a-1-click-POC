@@ -1,6 +1,9 @@
 {
 	"name": "Write To Delta",
 	"properties": {
+		"folder": {
+			"name": "Data Management"
+		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"bigDataPool": {
@@ -17,7 +20,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "3011b041-cd6f-4658-960b-b29619875439"
+				"spark.autotune.trackingId": "843c2dc3-d7a5-47f7-b333-877611e0d49d"
 			}
 		},
 		"metadata": {
