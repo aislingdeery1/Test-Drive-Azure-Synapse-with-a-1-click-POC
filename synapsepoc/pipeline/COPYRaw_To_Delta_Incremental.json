@@ -1,5 +1,5 @@
 {
-	"name": "Raw_To_Delta_Incremental",
+	"name": "COPYRaw_To_Delta_Incremental",
 	"properties": {
 		"activities": [
 			{
@@ -16,14 +16,14 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "DataFlowRawToDelta",
+						"referenceName": "COPYDataFlowRawToDelta",
 						"type": "DataFlowReference",
 						"parameters": {
 							"windowStart": "addDays(currentTimestamp(),-2)",
 							"windowEnd": "currentTimestamp()"
 						},
 						"datasetParameters": {
-							"Incremental": {
+							"source1": {
 								"cw_folderPath": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
 							}
 						}

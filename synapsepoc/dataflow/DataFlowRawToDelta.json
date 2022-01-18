@@ -12,7 +12,7 @@
 						"referenceName": "raw_to_delta_sourcedata",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "Incremental"
 				}
 			],
 			"sinks": [
@@ -21,18 +21,19 @@
 						"referenceName": "deltasinkls",
 						"type": "LinkedServiceReference"
 					},
-					"name": "sink1"
+					"name": "SinkIncremental"
 				}
 			],
 			"transformations": [
 				{
-					"name": "AlterRow1"
+					"name": "Upsert"
 				}
 			],
 			"scriptLines": [
 				"parameters{",
 				"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
-				"     windowEnd as timestamp (currentTimestamp())",
+				"     windowEnd as timestamp (currentTimestamp()),",
+				"     primaryKey as string ('PersonID')",
 				"}",
 				"source(output(",
 				"          PersonID as integer,",
@@ -42,9 +43,9 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet') ~> source1",
-				"source1 alterRow(upsertIf(isNull([PersonID])==false())) ~> AlterRow1",
-				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     format: 'parquet') ~> Incremental",
+				"Incremental alterRow(upsertIf(isNull([$primaryKey])==false())) ~> Upsert",
+				"Upsert sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'delta',",
 				"     container: 'sandbox',",
@@ -57,11 +58,11 @@
 				"     insertable:true,",
 				"     updateable:false,",
 				"     upsertable:true,",
-				"     keys:['PersonID'],",
+				"     keys:[($primaryKey)],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     preCommands: [],",
-				"     postCommands: []) ~> sink1"
+				"     postCommands: []) ~> SinkIncremental"
 			]
 		}
 	}

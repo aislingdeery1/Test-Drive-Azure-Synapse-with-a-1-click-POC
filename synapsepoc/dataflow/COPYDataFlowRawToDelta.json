@@ -1,0 +1,99 @@
+{
+	"name": "COPYDataFlowRawToDelta",
+	"properties": {
+		"folder": {
+			"name": "INCREMENTAL DELTA"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "raw_to_delta_sourcedata",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "Parquet2",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "deltasinkls",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "Join1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
+				"     windowEnd as timestamp (currentTimestamp()),",
+				"     parameter1 as string ('source1@PersonID'),",
+				"     parameter2 as string ('source2@PersonID'),",
+				"     source1 as string ('source1'),",
+				"     source2 as string ('source2'),",
+				"     primarykey1 as string ('PersonID'),",
+				"     primarykey2 as string ('PersonID'),",
+				"     parameter3 as string (concat($source1, '@', $primarykey1)),",
+				"     parameter4 as string (concat($source2, '@', $primarykey2))",
+				"}",
+				"source(output(",
+				"          PersonID as integer,",
+				"          Name as string,",
+				"          LastModifytime as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> source1",
+				"source(output(",
+				"          PersonID as integer,",
+				"          Name as string,",
+				"          LastModifytime as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> source2",
+				"Join1 alterRow(updateIf(toString(byName(concat('source1@', $primarykey1))) == toString(byName(concat('{source2@', $primarykey2, '}')))),",
+				"     insertIf(true())) ~> AlterRow1",
+				"source1, source2 join(source1@PersonID == source2@PersonID,",
+				"     joinType:'outer',",
+				"     broadcast: 'auto')~> Join1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     container: 'sandbox',",
+				"     folderPath: 'curated/incremental_tutorial',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['PersonID'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     preCommands: [],",
+				"     postCommands: []) ~> sink1"
+			]
+		}
+	}
+}

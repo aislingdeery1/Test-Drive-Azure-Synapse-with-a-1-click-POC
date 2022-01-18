@@ -1,29 +1,33 @@
 {
-	"name": "raw_to_delta_sourcedata",
+	"name": "Parquet2",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "aisltx5fjw3gpqcmpoc",
 			"type": "LinkedServiceReference"
-		},
-		"parameters": {
-			"cw_folderPath": {
-				"type": "string",
-				"defaultValue": "raw/incremental_tutorial/2022/01/11/16/25"
-			}
 		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"folderPath": {
-					"value": "@dataset().cw_folderPath",
-					"type": "Expression"
-				},
+				"folderPath": "curated/incremental_tutorial",
 				"fileSystem": "sandbox"
 			},
 			"compressionCodec": "snappy"
 		},
-		"schema": []
+		"schema": [
+			{
+				"name": "PersonID",
+				"type": "INT32"
+			},
+			{
+				"name": "Name",
+				"type": "UTF8"
+			},
+			{
+				"name": "LastModifytime",
+				"type": "INT96"
+			}
+		]
 	}
 }
