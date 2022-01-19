@@ -1,0 +1,32 @@
+{
+	"name": "stg_destination_table",
+	"properties": {
+		"annotations": [],
+		"type": "SqlPoolTable",
+		"schema": [
+			{
+				"name": "PersonID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Name",
+				"type": "varchar"
+			},
+			{
+				"name": "LastModifytime",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "stg",
+			"table": "destination_table"
+		},
+		"sqlPool": {
+			"referenceName": "aisltx5fjw3gpqcmpocws1p1",
+			"type": "SqlPoolReference"
+		}
+	}
+}

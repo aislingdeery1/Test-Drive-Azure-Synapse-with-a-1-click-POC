@@ -1,0 +1,20 @@
+{
+	"name": "CREATE TABLE destination_table",
+	"properties": {
+		"folder": {
+			"name": "INCREMENTAL DEDICATED SQL"
+		},
+		"content": {
+			"query": "CREATE table destination_table\n(\n    PersonID int,\n    Name varchar(255),\n    LastModifytime datetime\n)\nWITH\n(\n    DISTRIBUTION = HASH([PersonID]),\n    CLUSTERED INDEX (Name)\n    --HEAP\n);;\n\n\nCREATE SCHEMA stg;\nCREATE table stg.destination_table\n(\n    PersonID int,\n    Name varchar(255),\n    LastModifytime datetime\n)\nWITH\n(\n    DISTRIBUTION = HASH([PersonID]),\n    CLUSTERED INDEX (Name)\n    --HEAP\n);;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

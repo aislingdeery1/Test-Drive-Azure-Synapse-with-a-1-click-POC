@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 5",
+	"properties": {
+		"content": {
+			"query": "\n\n\n SELECT * FROM stg.destination_table\n\n SELECT * FROM [dbo].[destination_table]\n\n\n --INSERT ROWS\n INSERT INTO [dbo].[destination_table]\n SELECT PersonID, Name, LastModifytime \n FROM stg.destination_table\n WHERE PersonID IN ( \n    SELECT stg.PersonID--, dest.PersonID\n    from stg.destination_table stg\n    left join  [dbo].[destination_table] dest\n    on stg.PersonID = dest.PersonID\n    where dest.PersonID is null )\n ;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
