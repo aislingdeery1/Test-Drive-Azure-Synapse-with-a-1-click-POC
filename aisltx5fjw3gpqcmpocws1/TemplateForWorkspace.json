@@ -73,15 +73,6 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('workspaceName'), '/ws1sparkpool1')]",
-			"type": "Microsoft.Synapse/workspaces/bigDataPools",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"annotations": []
-			},
-			"dependsOn": []
-		},
-		{
 			"name": "[concat(parameters('workspaceName'), '/FaresDataPipeline_TEST')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -499,10 +490,10 @@
 									"windowEnd": "currentTimestamp()"
 								},
 								"datasetParameters": {
-									"source1": {
+									"Incremental": {
 										"cw_folderPath": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
 									},
-									"sink1": {}
+									"SinkIncremental": {}
 								}
 							},
 							"staging": {},
@@ -533,6 +524,83 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/dataflows/DataFlowRawToDelta')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Raw_to_Synapse')]",
+			"type": "Microsoft.Synapse/workspaces/pipelines",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"activities": [
+					{
+						"name": "STAGE IN SYNAPSE",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ParquetSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"wildcardFileName": "*",
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "SqlPoolSink",
+								"preCopyScript": "TRUNCATE TABLE stg.destination_table;",
+								"allowPolyBase": true,
+								"polyBaseSettings": {
+									"rejectValue": 0,
+									"rejectType": "value",
+									"useTypeDefault": true
+								}
+							},
+							"enableStaging": false
+						},
+						"inputs": [
+							{
+								"referenceName": "raw_incremental_data",
+								"type": "DatasetReference",
+								"parameters": {
+									"cw_folderPath": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "stg_destination_table",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"parameters": {
+					"windowStart": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "IncrementalPipeline"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/raw_incremental_data')]",
+				"[concat(variables('workspaceId'), '/datasets/stg_destination_table')]"
 			]
 		},
 		{
@@ -816,8 +884,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]",
-				"[concat(variables('workspaceId'), '/integrationRuntimes/AutoResolveIntegrationRuntime')]"
+				"[concat(variables('workspaceId'), '/dataflows/Dataflow1')]"
 			]
 		},
 		{
@@ -2090,6 +2157,44 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Parquet2')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "aisltx5fjw3gpqcmpoc",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "curated/incremental_tutorial",
+						"fileSystem": "sandbox"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "PersonID",
+						"type": "INT32"
+					},
+					{
+						"name": "Name",
+						"type": "UTF8"
+					},
+					{
+						"name": "LastModifytime",
+						"type": "INT96"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/aisltx5fjw3gpqcmpoc')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SourceDataset_vdt')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -2509,6 +2614,40 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/raw_incremental_data')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "aisltx5fjw3gpqcmpoc",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"cw_folderPath": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "*",
+						"folderPath": {
+							"value": "@dataset().cw_folderPath",
+							"type": "Expression"
+						},
+						"fileSystem": "sandbox"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/linkedServices/aisltx5fjw3gpqcmpoc')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/raw_to_delta_sourcedata')]",
 			"type": "Microsoft.Synapse/workspaces/datasets",
 			"apiVersion": "2019-06-01-preview",
@@ -2520,7 +2659,7 @@
 				"parameters": {
 					"cw_folderPath": {
 						"type": "string",
-						"defaultValue": "raw/incremental_tutorial/@{formatDateTime(pipeline().parameters.windowStart,'yyyy')}/@{formatDateTime(pipeline().parameters.windowStart,'MM')}/@{formatDateTime(pipeline().parameters.windowStart,'dd')}/@{formatDateTime(pipeline().parameters.windowStart,'HH')}/@{formatDateTime(pipeline().parameters.windowStart,'mm')}"
+						"defaultValue": "raw/incremental_tutorial/2022/01/11/16/25"
 					}
 				},
 				"annotations": [],
@@ -2613,6 +2752,43 @@
 			},
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/linkedServices/sql_db_synapse_one_click_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/stg_destination_table')]",
+			"type": "Microsoft.Synapse/workspaces/datasets",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": [],
+				"type": "SqlPoolTable",
+				"schema": [
+					{
+						"name": "PersonID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Name",
+						"type": "varchar"
+					},
+					{
+						"name": "LastModifytime",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "stg",
+					"table": "destination_table"
+				},
+				"sqlPool": {
+					"referenceName": "aisltx5fjw3gpqcmpocws1p1",
+					"type": "SqlPoolReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/sqlPools/aisltx5fjw3gpqcmpocws1p1')]"
 			]
 		},
 		{
@@ -3169,7 +3345,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/DataFlowRawToDelta')]",
+			"name": "[concat(parameters('workspaceName'), '/COPYDataFlowRawToDelta')]",
 			"type": "Microsoft.Synapse/workspaces/dataflows",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -3185,6 +3361,13 @@
 								"type": "DatasetReference"
 							},
 							"name": "source1"
+						},
+						{
+							"dataset": {
+								"referenceName": "Parquet2",
+								"type": "DatasetReference"
+							},
+							"name": "source2"
 						}
 					],
 					"sinks": [
@@ -3199,12 +3382,23 @@
 					"transformations": [
 						{
 							"name": "AlterRow1"
+						},
+						{
+							"name": "Join1"
 						}
 					],
 					"scriptLines": [
 						"parameters{",
 						"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
-						"     windowEnd as timestamp (currentTimestamp())",
+						"     windowEnd as timestamp (currentTimestamp()),",
+						"     parameter1 as string ('source1@PersonID'),",
+						"     parameter2 as string ('source2@PersonID'),",
+						"     source1 as string ('source1'),",
+						"     source2 as string ('source2'),",
+						"     primarykey1 as string ('PersonID'),",
+						"     primarykey2 as string ('PersonID'),",
+						"     parameter3 as string (concat($source1,'@',$primarykey1)),",
+						"     parameter4 as string (concat($source2,'@',$primarykey2))",
 						"}",
 						"source(output(",
 						"          PersonID as integer,",
@@ -3215,7 +3409,20 @@
 						"     validateSchema: false,",
 						"     ignoreNoFilesFound: false,",
 						"     format: 'parquet') ~> source1",
-						"source1 alterRow(upsertIf(isNull([PersonID])==false())) ~> AlterRow1",
+						"source(output(",
+						"          PersonID as integer,",
+						"          Name as string,",
+						"          LastModifytime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> source2",
+						"Join1 alterRow(updateIf(toString(byName(concat('source1@',$primarykey1)))==toString(byName(concat('{source2@',$primarykey2,'}')))),",
+						"     insertIf(true())) ~> AlterRow1",
+						"source1, source2 join(source1@PersonID == source2@PersonID,",
+						"     joinType:'outer',",
+						"     broadcast: 'auto')~> Join1",
 						"AlterRow1 sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
 						"     format: 'delta',",
@@ -3234,6 +3441,82 @@
 						"     skipDuplicateMapOutputs: true,",
 						"     preCommands: [],",
 						"     postCommands: []) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('workspaceId'), '/datasets/raw_to_delta_sourcedata')]",
+				"[concat(variables('workspaceId'), '/datasets/Parquet2')]",
+				"[concat(variables('workspaceId'), '/linkedServices/deltasinkls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/DataFlowRawToDelta')]",
+			"type": "Microsoft.Synapse/workspaces/dataflows",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DELTA"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "raw_to_delta_sourcedata",
+								"type": "DatasetReference"
+							},
+							"name": "Incremental"
+						}
+					],
+					"sinks": [
+						{
+							"linkedService": {
+								"referenceName": "deltasinkls",
+								"type": "LinkedServiceReference"
+							},
+							"name": "SinkIncremental"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Upsert"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     windowStart as timestamp (addDays(currentTimestamp(),-2)),",
+						"     windowEnd as timestamp (currentTimestamp()),",
+						"     primaryKey as string ('PersonID')",
+						"}",
+						"source(output(",
+						"          PersonID as integer,",
+						"          Name as string,",
+						"          LastModifytime as timestamp",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     format: 'parquet') ~> Incremental",
+						"Incremental alterRow(upsertIf(isNull([$primaryKey])==false())) ~> Upsert",
+						"Upsert sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     format: 'delta',",
+						"     container: 'sandbox',",
+						"     folderPath: 'curated/incremental_tutorial',",
+						"     mergeSchema: false,",
+						"     autoCompact: false,",
+						"     optimizedWrite: false,",
+						"     vacuum: 0,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     keys:[($primaryKey)],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     preCommands: [],",
+						"     postCommands: []) ~> SinkIncremental"
 					]
 				}
 			},
@@ -3460,21 +3743,21 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SERVERLESS QUERY DELTA')]",
+			"name": "[concat(parameters('workspaceName'), '/CREATE TABLE AggregateTaxiData')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
 				"folder": {
-					"name": "INCREMENTAL DELTA"
+					"name": "TaxiData"
 				},
 				"content": {
-					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID\n",
+					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [tripFares].[AggregateTaxiData]\n( \n\t[payment_type] [nvarchar](max)  NULL,\n\t[average_fare] [float]  NULL,\n\t[total_trip_distance] [bigint]  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
 					"metadata": {
 						"language": "sql"
 					},
 					"currentConnection": {
-						"databaseName": "master",
-						"poolName": "Built-in"
+						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+						"poolName": "aisltx5fjw3gpqcmpocws1p1"
 					},
 					"resultLimit": 5000
 				},
@@ -3492,52 +3775,6 @@
 				},
 				"content": {
 					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[FaresData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[payment_type] [nvarchar](max)  NULL,\n\t[fare_amount] [nvarchar](max)  NULL,\n\t[surcharge] [nvarchar](max)  NULL,\n\t[mta_tax] [nvarchar](max)  NULL,\n\t[tip_amount] [nvarchar](max)  NULL,\n\t[tolls_amount] [nvarchar](max)  NULL,\n\t[total_amount] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
-						"poolName": "aisltx5fjw3gpqcmpocws1p1"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"folder": {
-					"name": "TaxiData"
-				},
-				"content": {
-					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[TripsData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[rate_code] [nvarchar](max)  NULL,\n\t[store_and_fwd_flag] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[dropoff_datetime] [nvarchar](max)  NULL,\n\t[passenger_count] [nvarchar](max)  NULL,\n\t[trip_time_in_secs] [nvarchar](max)  NULL,\n\t[trip_distance] [nvarchar](max)  NULL,\n\t[pickup_longitude] [nvarchar](max)  NULL,\n\t[pickup_latitude] [nvarchar](max)  NULL,\n\t[dropoff_longitude] [nvarchar](max)  NULL,\n\t[dropoff_latitude] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
-					"metadata": {
-						"language": "sql"
-					},
-					"currentConnection": {
-						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
-						"poolName": "aisltx5fjw3gpqcmpocws1p1"
-					},
-					"resultLimit": 5000
-				},
-				"type": "SqlQuery"
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('workspaceName'), '/CREATE TABLE AggregateTaxiData')]",
-			"type": "Microsoft.Synapse/workspaces/sqlscripts",
-			"apiVersion": "2019-06-01-preview",
-			"properties": {
-				"folder": {
-					"name": "TaxiData"
-				},
-				"content": {
-					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [tripFares].[AggregateTaxiData]\n( \n\t[payment_type] [nvarchar](max)  NULL,\n\t[average_fare] [float]  NULL,\n\t[total_trip_distance] [bigint]  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
 					"metadata": {
 						"language": "sql"
 					},
@@ -3575,6 +3812,138 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/CREATE TABLE destination_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DEDICATED SQL"
+				},
+				"content": {
+					"query": "CREATE table destination_table\n(\n    PersonID int,\n    Name varchar(255),\n    LastModifytime datetime\n)\nWITH\n(\n    DISTRIBUTION = HASH([PersonID]),\n    CLUSTERED INDEX (Name)\n    --HEAP\n);;\n\n\nCREATE SCHEMA stg;\nCREATE table stg.destination_table\n(\n    PersonID int,\n    Name varchar(255),\n    LastModifytime datetime\n)\nWITH\n(\n    DISTRIBUTION = HASH([PersonID]),\n    CLUSTERED INDEX (Name)\n    --HEAP\n);;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+						"poolName": "aisltx5fjw3gpqcmpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SERVERLESS QUERY DELTA')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DELTA"
+				},
+				"content": {
+					"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "master",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SP INSERT UPDATE destination_table')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "INCREMENTAL DEDICATED SQL"
+				},
+				"content": {
+					"query": "CREATE PROCEDURE dbo.uspDestinationPersons   \nAS   \n    SET NOCOUNT ON;      \nCREATE table #destination_table\nWITH\n(\n    DISTRIBUTION = HASH([PersonID]),\n    CLUSTERED INDEX (Name)\n    --HEAP\n) \nAS\n(    \n    SELECT PersonID ,    Name ,    LastModifytime \n    FROM [dbo].[incrementalload1] AS sp    \n)\nGO  \n\n--INSERT...EXECUTE procedure example  \nINSERT INTO dbo.destination_table   \nEXEC dbo.uspDestinationPersons;  \nGO  \n\n--Show results.  \nSELECT * \nFROM dbo.destination_table   ;\n\n\nEXEC dbo.uspDestinationPersons  ;\n\nSELECT * \nFROM #destination_table   ;\n\nSELECT *\nINTO    dbo.destination_table  \nFROM    #destination_table \n\n\n",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+						"poolName": "aisltx5fjw3gpqcmpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 2')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "TaxiData"
+				},
+				"content": {
+					"query": "SET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [dbo].[TripsData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[rate_code] [nvarchar](max)  NULL,\n\t[store_and_fwd_flag] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[dropoff_datetime] [nvarchar](max)  NULL,\n\t[passenger_count] [nvarchar](max)  NULL,\n\t[trip_time_in_secs] [nvarchar](max)  NULL,\n\t[trip_distance] [nvarchar](max)  NULL,\n\t[pickup_longitude] [nvarchar](max)  NULL,\n\t[pickup_latitude] [nvarchar](max)  NULL,\n\t[dropoff_longitude] [nvarchar](max)  NULL,\n\t[dropoff_latitude] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = ROUND_ROBIN,\n\tHEAP\n)\nGO",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+						"poolName": "aisltx5fjw3gpqcmpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 3')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [PersonID]\n,[Name]\n,[LastModifytime]\n FROM [dbo].[delta_incrementalload]\n order by [PersonID]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "EXTERNALDELTA",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 5')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "\n\n\n SELECT * FROM stg.destination_table\n\n SELECT * FROM [dbo].[destination_table]\n\n\n --INSERT ROWS\n INSERT INTO [dbo].[destination_table]\n SELECT PersonID, Name, LastModifytime \n FROM stg.destination_table\n WHERE PersonID IN ( \n    SELECT stg.PersonID--, dest.PersonID\n    from stg.destination_table stg\n    left join  [dbo].[destination_table] dest\n    on stg.PersonID = dest.PersonID\n    where dest.PersonID is null )\n ;",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+						"poolName": "aisltx5fjw3gpqcmpocws1p1"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SQL_MoviesComedyRating')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -3598,7 +3967,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('workspaceName'), '/SQL_NYCTaxiSmall')]",
+			"name": "[concat(parameters('workspaceName'), '/SQL_NYCTaxiSmall1')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
 			"properties": {
@@ -4166,6 +4535,15 @@
 			"dependsOn": [
 				"[concat(variables('workspaceId'), '/managedVirtualNetworks/default')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/ws1sparkpool1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
 		}
 	]
 }
