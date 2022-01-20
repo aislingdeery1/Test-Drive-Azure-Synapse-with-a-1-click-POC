@@ -1,5 +1,5 @@
 {
-	"name": "CREATE TABLE DBO FARESDATA1",
+	"name": "CREATE TABLE DBO FARESDATA",
 	"properties": {
 		"folder": {
 			"name": "TaxiData"
