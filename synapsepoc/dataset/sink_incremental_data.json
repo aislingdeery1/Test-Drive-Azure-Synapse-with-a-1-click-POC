@@ -2,12 +2,8 @@
 	"name": "sink_incremental_data",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "TripFaresDataLakeStorageLinkedService",
-			"type": "LinkedServiceReference",
-			"parameters": {
-				"keyVaultName": "kvaisltx5fjw3gpqcmpoc",
-				"datalakeAccountName": "aisltx5fjw3gpqcmpoc"
-			}
+			"referenceName": "ADLS",
+			"type": "LinkedServiceReference"
 		},
 		"parameters": {
 			"cw_folderPath": {
@@ -23,7 +19,10 @@
 					"value": "@concat('Incremental-', pipeline().RunId, '.parquet')",
 					"type": "Expression"
 				},
-				"folderPath": "@dataset().cw_folderPath",
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
 				"fileSystem": "sandbox"
 			},
 			"compressionCodec": "snappy"

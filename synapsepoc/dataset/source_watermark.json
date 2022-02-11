@@ -2,7 +2,7 @@
 	"name": "source_watermark",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "sql_db_synapse_one_click_source",
+			"referenceName": "SourceDB",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],

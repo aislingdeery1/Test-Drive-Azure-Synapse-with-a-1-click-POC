@@ -150,7 +150,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "[dbo].[usp_write_watermark]",
+					"storedProcedureName": "usp_write_watermark",
 					"storedProcedureParameters": {
 						"LastModifiedtime": {
 							"value": {
@@ -169,38 +169,8 @@
 					}
 				},
 				"linkedServiceName": {
-					"referenceName": "sql_db_synapse_one_click_source",
+					"referenceName": "SourceDB",
 					"type": "LinkedServiceReference"
-				}
-			},
-			{
-				"name": "Execute Pipeline Raw_To_Delta_Incremental",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "IncrementalCopyActivity",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "Raw_To_Delta_Incremental",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true,
-					"parameters": {
-						"windowStart": {
-							"value": "@pipeline().parameters.windowStart",
-							"type": "Expression"
-						},
-						"windowEnd": {
-							"value": "@pipeline().parameters.windowStart",
-							"type": "Expression"
-						}
-					}
 				}
 			}
 		],

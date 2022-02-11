@@ -2,7 +2,7 @@
 	"name": "data_source_table",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "sql_db_synapse_one_click_source",
+			"referenceName": "SourceDB",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
