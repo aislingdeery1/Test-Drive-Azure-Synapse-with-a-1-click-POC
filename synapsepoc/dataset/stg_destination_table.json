@@ -25,7 +25,7 @@
 			"table": "destination_table"
 		},
 		"sqlPool": {
-			"referenceName": "aisltx5fjw3gpqcmpocws1p1",
+			"referenceName": "ads3tf6pxfizs3rgpocws1p1",
 			"type": "SqlPoolReference"
 		}
 	}
