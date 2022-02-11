@@ -20,7 +20,8 @@
 						"type": "DataFlowReference",
 						"parameters": {
 							"windowStart": "addDays(currentTimestamp(),-2)",
-							"windowEnd": "currentTimestamp()"
+							"windowEnd": "currentTimestamp()",
+							"primaryKey": "'PersonID'"
 						},
 						"datasetParameters": {
 							"Incremental": {

@@ -18,7 +18,7 @@
 			"sinks": [
 				{
 					"linkedService": {
-						"referenceName": "deltasinkls",
+						"referenceName": "linkedService1",
 						"type": "LinkedServiceReference"
 					},
 					"name": "SinkIncremental"
