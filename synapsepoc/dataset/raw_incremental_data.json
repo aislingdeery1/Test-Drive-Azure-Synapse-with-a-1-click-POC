@@ -2,7 +2,7 @@
 	"name": "raw_incremental_data",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "aisltx5fjw3gpqcmpoc",
+			"referenceName": "ADLS",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
@@ -16,7 +16,10 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "*",
-				"folderPath": "@dataset().cw_folderPath",
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
 				"fileSystem": "sandbox"
 			},
 			"compressionCodec": "snappy"
