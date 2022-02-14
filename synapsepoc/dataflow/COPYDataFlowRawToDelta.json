@@ -25,7 +25,7 @@
 			"sinks": [
 				{
 					"linkedService": {
-						"referenceName": "deltasinkls",
+						"referenceName": "linkedService1",
 						"type": "LinkedServiceReference"
 					},
 					"name": "sink1"
@@ -49,8 +49,8 @@
 				"     source2 as string ('source2'),",
 				"     primarykey1 as string ('PersonID'),",
 				"     primarykey2 as string ('PersonID'),",
-				"     parameter3 as string (concat($source1, '@', $primarykey1)),",
-				"     parameter4 as string (concat($source2, '@', $primarykey2))",
+				"     parameter3 as string (concat($source1,'@',$primarykey1)),",
+				"     parameter4 as string (concat($source2,'@',$primarykey2))",
 				"}",
 				"source(output(",
 				"          PersonID as integer,",
@@ -70,7 +70,7 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet') ~> source2",
-				"Join1 alterRow(updateIf(toString(byName(concat('source1@', $primarykey1))) == toString(byName(concat('{source2@', $primarykey2, '}')))),",
+				"Join1 alterRow(updateIf(toString(byName(concat('source1@',$primarykey1)))==toString(byName(concat('{source2@',$primarykey2,'}')))),",
 				"     insertIf(true())) ~> AlterRow1",
 				"source1, source2 join(source1@PersonID == source2@PersonID,",
 				"     joinType:'outer',",
