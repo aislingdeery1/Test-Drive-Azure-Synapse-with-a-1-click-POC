@@ -1,0 +1,25 @@
+{
+	"name": "Parquet1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "TripFaresDataLakeStorageLinkedService",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"keyVaultName": "kvaisltx5fjw3gpqcmpoc",
+				"datalakeAccountName": "aisltx5fjw3gpqcmpoc"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "curated/movies/comedyratingsbyyear",
+				"fileSystem": "sandbox"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

@@ -1,0 +1,51 @@
+{
+	"name": "MetadataDrivenCopyTask_9wj_SourceDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ADLS",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_compressionCodec": {
+				"type": "String"
+			},
+			"cw_fileName": {
+				"type": "Object"
+			},
+			"cw_folderPath": {
+				"type": "String"
+			},
+			"cw_fileSystem": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTask_9wj_20220209"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().cw_fileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().cw_fileSystem",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": {
+				"value": "@dataset().cw_compressionCodec",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

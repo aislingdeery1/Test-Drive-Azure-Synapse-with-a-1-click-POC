@@ -1,0 +1,17 @@
+{
+	"name": "AzureSynapseAnalyticsTable2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "TripFaresSynapseAnalyticsLinkedService",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "test",
+			"table": "dim_taxi"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

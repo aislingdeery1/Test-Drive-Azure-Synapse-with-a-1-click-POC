@@ -1,0 +1,20 @@
+{
+	"name": "CREATE TABLE FARES DATA",
+	"properties": {
+		"folder": {
+			"name": "TaxiData"
+		},
+		"content": {
+			"query": "--CREATE SCHEMA [TEST];\n\nSET ANSI_NULLS ON\nGO\nSET QUOTED_IDENTIFIER ON\nGO\n\nCREATE TABLE [TEST].[FaresData]\n( \n\t[medallion] [nvarchar](max)  NULL,\n\t[hack_license] [nvarchar](max)  NULL,\n\t[vendor_id] [nvarchar](max)  NULL,\n\t[pickup_datetime] [nvarchar](max)  NULL,\n\t[payment_type] [nvarchar](max)  NULL,\n\t[fare_amount] [nvarchar](max)  NULL,\n\t[surcharge] [nvarchar](max)  NULL,\n\t[mta_tax] [nvarchar](max)  NULL,\n\t[tip_amount] [nvarchar](max)  NULL,\n\t[tolls_amount] [nvarchar](max)  NULL,\n\t[total_amount] [nvarchar](max)  NULL\n)\nWITH\n(\n\tDISTRIBUTION = REPLICATE, HEAP\n)\nGO",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

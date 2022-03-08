@@ -1,0 +1,20 @@
+{
+	"name": "SP INSERT UPDATE destination_table",
+	"properties": {
+		"folder": {
+			"name": "INCREMENTAL DEDICATED SQL"
+		},
+		"content": {
+			"query": "CREATE PROCEDURE dbo.uspDestinationPersons   \nAS   \n    SET NOCOUNT ON;      \nCREATE table #destination_table\nWITH\n(\n    DISTRIBUTION = HASH([PersonID]),\n    CLUSTERED INDEX (Name)\n    --HEAP\n) \nAS\n(    \n    SELECT PersonID ,    Name ,    LastModifytime \n    FROM [dbo].[incrementalload1] AS sp    \n)\nGO  \n\n--INSERT...EXECUTE procedure example  \nINSERT INTO dbo.destination_table   \nEXEC dbo.uspDestinationPersons;  \nGO  \n\n--Show results.  \nSELECT * \nFROM dbo.destination_table   ;\n\n\nEXEC dbo.uspDestinationPersons  ;\n\nSELECT * \nFROM #destination_table   ;\n\nSELECT *\nINTO    dbo.destination_table  \nFROM    #destination_table \n\n\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "aisltx5fjw3gpqcmpocws1p1",
+				"poolName": "aisltx5fjw3gpqcmpocws1p1"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

@@ -1,0 +1,29 @@
+{
+	"name": "DestinationDataset_vdt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "aisltx5fjw3gpqcmpoc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_folderPath": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
+				"fileSystem": "sandbox"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

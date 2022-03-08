@@ -1,0 +1,33 @@
+{
+	"name": "SQLDBSink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SourceDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "PersonID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Name",
+				"type": "varchar"
+			},
+			{
+				"name": "LastModifytime",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "target",
+			"table": "data_target_table"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

@@ -1,0 +1,42 @@
+{
+	"name": "SourceDataset_vdt",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "aisltx5fjw3gpqcmpoc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_folderPath": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
+				"fileSystem": "sandbox"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "PersonID",
+				"type": "INT32"
+			},
+			{
+				"name": "Name",
+				"type": "UTF8"
+			},
+			{
+				"name": "LastModifytime",
+				"type": "INT96"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

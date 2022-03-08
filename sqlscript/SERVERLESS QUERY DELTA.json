@@ -1,0 +1,20 @@
+{
+	"name": "SERVERLESS QUERY DELTA",
+	"properties": {
+		"folder": {
+			"name": "INCREMENTAL DELTA"
+		},
+		"content": {
+			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net/sandbox/curated/incremental_tutorial/',\n        FORMAT = 'delta'\n    ) AS [result]\nORDER BY PersonID\n",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

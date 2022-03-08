@@ -1,0 +1,16 @@
+{
+	"name": "ADLS",
+	"type": "Microsoft.Synapse/workspaces/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://ads3tf6pxfizs3rgpoc.dfs.core.windows.net",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIlNZTkFQU0VANzgwNkI3QjktQzM4Ny00NTE2LUExQjAtQjFGRDY0M0I5OTc3X2QwZWViMWYzLWRkOWYtNDYwNy05YmJhLTNiYzU5YmMyOGUwNyINCn0="
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

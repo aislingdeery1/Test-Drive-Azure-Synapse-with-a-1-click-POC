@@ -1,0 +1,20 @@
+{
+	"name": "MetadataDrivenCopyTask_9wj_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SourceDB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTask_9wj_20220209"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "controltable"
+		}
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

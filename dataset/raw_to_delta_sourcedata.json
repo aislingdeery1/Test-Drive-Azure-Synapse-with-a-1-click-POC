@@ -1,0 +1,30 @@
+{
+	"name": "raw_to_delta_sourcedata",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "aisltx5fjw3gpqcmpoc",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_folderPath": {
+				"type": "string",
+				"defaultValue": "raw/incremental_tutorial/2022/01/11/16/25"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": {
+					"value": "@dataset().cw_folderPath",
+					"type": "Expression"
+				},
+				"fileSystem": "sandbox"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}
