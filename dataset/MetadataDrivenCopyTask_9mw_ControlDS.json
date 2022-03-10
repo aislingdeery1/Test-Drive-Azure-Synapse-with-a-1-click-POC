@@ -1,0 +1,18 @@
+{
+	"name": "MetadataDrivenCopyTask_9mw_ControlDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SourceDB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTask_9mw_20220310"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"table": "MainControlTable_9mw"
+		}
+	}
+}
