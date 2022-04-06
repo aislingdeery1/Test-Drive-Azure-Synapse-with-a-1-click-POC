@@ -1,0 +1,63 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"workspaceName": {
+			"value": "ads3tf6pxfizs3rgpocws1"
+		},
+		"ADLS_accountKey": {
+			"value": ""
+		},
+		"AzureDataLakeStorage1_accountKey": {
+			"value": ""
+		},
+		"SourceDB_connectionString": {
+			"value": ""
+		},
+		"TripFaresSynapseAnalyticsLinkedService_connectionString": {
+			"value": ""
+		},
+		"ads3tf6pxfizs3rgpocws1-WorkspaceDefaultSqlServer_connectionString": {
+			"value": ""
+		},
+		"aisltx5fjw3gpqcmpoc_accountKey": {
+			"value": ""
+		},
+		"ADLS_properties_typeProperties_url": {
+			"value": "https://ads3tf6pxfizs3rgpoc.dfs.core.windows.net"
+		},
+		"AzureDataLakeStorage1_properties_typeProperties_url": {
+			"value": "https://stdatabricksoverwatch.dfs.core.windows.net"
+		},
+		"AzureMLService1_properties_typeProperties_subscriptionId": {
+			"value": "798e3660-52d8-404d-a9b2-446b348f4e80"
+		},
+		"AzureMLService1_properties_typeProperties_resourceGroupName": {
+			"value": "rg-data-consumption"
+		},
+		"HttpServerTripDataLinkedService_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/Azure/Test-Drive-Azure-Synapse-with-a-1-click-POC/main/tripDataAndFaresCSV/trip-data.csv"
+		},
+		"HttpServerTripFareDataLinkedService_properties_typeProperties_url": {
+			"value": "https://raw.githubusercontent.com/Azure/Test-Drive-Azure-Synapse-with-a-1-click-POC/main/tripDataAndFaresCSV/fares-data.csv"
+		},
+		"TripFaresDataLakeStorageLinkedService_properties_typeProperties_url": {
+			"value": "@{concat('https://',linkedService().datalakeAccountName,'.dfs.core.windows.net')}"
+		},
+		"ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage_properties_typeProperties_url": {
+			"value": "https://ads3tf6pxfizs3rgpoc.dfs.core.windows.net/"
+		},
+		"aisltx5fjw3gpqcmpoc_properties_typeProperties_url": {
+			"value": "https://aisltx5fjw3gpqcmpoc.dfs.core.windows.net"
+		},
+		"keyVaultLinkedservice_properties_typeProperties_baseUrl": {
+			"value": "@{concat('https://',linkedService().keyVaultName,'.vault.azure.net/')}"
+		},
+		"kvaisling_properties_typeProperties_baseUrl": {
+			"value": "https://kv-aisling.vault.azure.net/"
+		},
+		"stpurviewpolicytest_properties_typeProperties_url": {
+			"value": "https://stpurviewpolicytest.dfs.core.windows.net"
+		}
+	}
+}
