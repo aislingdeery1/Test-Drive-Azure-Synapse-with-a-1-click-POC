@@ -17,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "8382b620-b7a7-49c3-98a2-53e782f374c7"
+				"spark.autotune.trackingId": "c6334201-8587-41da-a2ea-5826173d24b3"
 			}
 		},
 		"metadata": {
@@ -43,7 +43,7 @@
 				"nodeCount": 5,
 				"cores": 8,
 				"memory": 56,
-				"extraHeader": null
+				"automaticScaleJobs": false
 			},
 			"sessionKeepAliveTimeout": 30
 		},
@@ -61,7 +61,6 @@
 					"   }\r\n",
 					" }"
 				],
-				"attachments": null,
 				"execution_count": 1
 			},
 			{
@@ -80,8 +79,7 @@
 				"source": [
 					"data = spark.range(0,5)"
 				],
-				"attachments": null,
-				"execution_count": 3
+				"execution_count": 2
 			}
 		]
 	}
