@@ -3161,18 +3161,16 @@
 				"language": "python",
 				"jobProperties": {
 					"name": "job definition sample",
-					"file": "abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/Spark Job/wordcount.py",
+					"file": "abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/spark_job/wordcount.py",
 					"conf": {
 						"spark.dynamicAllocation.enabled": "true",
 						"spark.dynamicAllocation.minExecutors": "1",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "16d8a831-38c8-4b67-a778-0c1fa84e906e"
+						"spark.autotune.trackingId": "3d6f5dd6-95ba-4b7d-8b3f-503c1b80a0a7"
 					},
 					"args": [
-						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/Spark",
-						"Job/shakespear.txt",
-						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/Spark",
-						"Job/result"
+						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/spark_job/shakespear.txt",
+						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/spark_job/result"
 					],
 					"jars": [],
 					"files": [],
