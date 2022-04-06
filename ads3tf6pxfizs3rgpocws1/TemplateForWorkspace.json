@@ -2946,7 +2946,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "8382b620-b7a7-49c3-98a2-53e782f374c7"
+						"spark.autotune.trackingId": "c6334201-8587-41da-a2ea-5826173d24b3"
 					}
 				},
 				"metadata": {
@@ -2971,8 +2971,7 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 5,
 						"cores": 8,
-						"memory": 56,
-						"extraHeader": null
+						"memory": 56
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -2990,7 +2989,6 @@
 							"   }\r\n",
 							" }"
 						],
-						"attachments": null,
 						"outputs": [],
 						"execution_count": 1
 					},
@@ -3010,9 +3008,8 @@
 						"source": [
 							"data = spark.range(0,5)"
 						],
-						"attachments": null,
 						"outputs": [],
-						"execution_count": 3
+						"execution_count": 2
 					}
 				]
 			},
@@ -3166,10 +3163,10 @@
 						"spark.dynamicAllocation.enabled": "true",
 						"spark.dynamicAllocation.minExecutors": "1",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "3d6f5dd6-95ba-4b7d-8b3f-503c1b80a0a7"
+						"spark.autotune.trackingId": "cbcbf702-c030-47af-943e-a83a56edd56d"
 					},
 					"args": [
-						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/spark_job/shakespear.txt",
+						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/spark_job/shakespeare.txt",
 						"abfss://sandbox@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/spark_job/result"
 					],
 					"jars": [],
@@ -3203,6 +3200,7 @@
 				"sparkVersion": "2.4",
 				"isComputeIsolationEnabled": false,
 				"sessionLevelPackagesEnabled": true,
+				"customLibraries": [],
 				"annotations": []
 			},
 			"dependsOn": [],
