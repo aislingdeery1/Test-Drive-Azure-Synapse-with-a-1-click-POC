@@ -3202,10 +3202,10 @@
 							},
 							"Source": {
 								"Provider": "ADLS",
-								"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9",
+								"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders",
 								"Properties": {
-									"FormatType": "csv",
-									"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage"
+									"FormatType": "parquet",
+									"LinkedServiceName": "ADLS"
 								}
 							}
 						},
@@ -3744,27 +3744,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Channel",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Channel",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Channel",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Channel",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -3781,7 +3774,7 @@
 								"Description": "A channel is a means by which products or services are sold and/or distributed.",
 								"DisplayFolderInfo": "{\"name\":\"Channel\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "ChannelId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -4040,27 +4033,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Communication",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Communication",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Communication",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Communication",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -4077,7 +4063,7 @@
 								"Description": "A communication to/from one or more party(s).",
 								"DisplayFolderInfo": "{\"name\":\"Customer Service & Contact Management\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "CommunicationId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -4254,27 +4240,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Customer",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Customer",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Customer",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Customer",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -4291,7 +4270,7 @@
 								"Description": "A customer is an individual or legal entity that has or has purchased a product or service.\n\nA potential customer is an individual or legal entity that has the desire to acquire a product or service, the financial ability to pay for that product or service and is located in a location in which the product or service can be delivered to them.\n\nThe definition of 'customer' is of critical importance for every organization.    \n\nIt is the customer that is the focus of product planning, marketing, sales, service, reporting and analytics.    Without 'customer' there would be no need for the organization to exist since its purpose is to serve the customer and profit from that interaction.\n\nThe definition of 'customer' must be consistent with how customers exist and interact with the organization in the real world.  An artificial or conceptual definition of 'customer' that is not consistent with these two objectives is doomed to fail because the data will not be consistent with the definition and employees will not accept concepts or terms that are not consistent with what they see, know and how they interact with customers on a working basis.\n\nMicrosoft defines 'customer' to meet these objectives.    When we look out into the real world we see two dominant types of customers:  human beings and legal entities.     \n\nHuman beings are obviously male and female individuals of various ages, sex, demographics and a variety of similar dimensions that describe and define them who purchase products, good and services.    \n\nLegal entities are those legally-defined entities such as corporations, partnerships, non-profit organizations, government organizations etc. that purchase products, goods and services.\n\nThis view of 'customer' is consistent with the real world and consistent with how employees view and interact with customers.\n\nOf course, that is just the start of identifying, defining and understanding each type of 'customer'.     There is a great deal of detail, complexity and related data that can be used to define each type of customer to various levels of detail and different dimensions of information.\n\nMicrosoft implements these detailed concepts and related data via two distinct business area models that expand the coverage and complexity of each type of customer:\n\n-  INDIVIDUAL CUSTOMER Business Area Model\n-  LEGAL ENTITY CUSTOMER Business Area Model\n\nNote:\nEach of the Microsoft models - enterprise, business area or data warehouse - have a representative level of detail for the appropriate type of customer, which is a 'subset' of the total data available in the associated INDIVIDUAL CUSTOMER or LEGAL ENTITY CUSTOMER business area models..   Reference either of those models to expand the coverage or level of detail in each respective data model.\n\nThe actual customer implemented in each model depends upon the dominant use of customer for that industry.     \n\nFor example, in the pharmaceutical industry the customer is a legal entity, which represents another corporation, company, government organization etc. that purchases the pharmaceutical product and then distributes that product to the end-customer, which is an individual in a retail environment or a government-distribution scheme.    \n\nFor this example, the pharmaceutical models will have the legal entity customer represented but not the individual 'end customer' since that is represented in the appropriate retail industry models, which are a different offering.     \n\nOf course, the entire set of data available for a legal entity customer is contained in the associated LEGAL ENTITY CUSTOMER Business Area Model.   Reference the LEGAL ENTITY CUSTOMER Business Area Model to incorporate additional data that may be of relevance.\n\nIn many industries both types of customers are represented since a legal entity or individual can purchase products, goods or services and enter into contracts.    For these industries, both types of customers are represented by some of the more significant or relevant data derived from the associated LEGAL ENTITY or INDIVIDUAL CUSTOMER business area models.   These models can be used to expand the scope or level of detail in any of the enterprise, business area or data warehouse models.",
 								"DisplayFolderInfo": "{\"name\":\"Customer\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "CustomerId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -4766,27 +4745,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Document",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Document",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Document",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Document",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -4803,7 +4775,7 @@
 								"Description": "A specific physical (written or printed) paper or electronic file that contains information.",
 								"DisplayFolderInfo": "{\"name\":\"Document Management\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "DocumentId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -5159,27 +5131,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Employee",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Employee",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Employee",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Employee",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -5196,7 +5161,7 @@
 								"Description": "An individual who is hired to provide services to a company on a regular basis in exchange for compensation.",
 								"DisplayFolderInfo": "{\"name\":\"Human Resources & Payroll\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "EmployeeId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -5506,27 +5471,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/HealthcareProduct",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/HealthcareProduct",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/HealthcareProduct",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/HealthcareProduct",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -5543,7 +5501,7 @@
 								"Description": "A product is anything that can be offered to a market that might satisfy a want or need by potential customers.    That product is the sum of all physical, psychological, symbolic, and service attributes associated with it.\n\nThere are two basic types of products:\n\n- Tangible (physical)\n- Intangible (non-physical) such as services\n\nA service is a non-material or intangible product - such as professional consultancy, maintenance service, repair service etc.\nEach product has its own benefits, application, brand name, and packaging that gives it its own identity and distinguishing characteristics.\n\nEvery business or organization has business rules that define precisely what a product is.    While we intuitively know what a product is, we must quantify that knowledge and associated business rules with consistent definitions that can be implemented within the organization in strategies and applications.\n\nA product typically goes through five stages of development:\n\n(1) Idea Stage - involving a thorough evaluation of the potential product\n\n(2) Concept Stage - determines customer acceptance by testing and presentation to consumers and distribution channel members.   Specific aspects regarding quality, dependability, reliability, warranty, packaging, service, pricing, terms of sale, sales and distribution channels, advertising and promotions are evaluated.\n\n(3) Product Development Stage - transforms the prototype product into an actual product for mass sale.   This stage requires close interaction between both marketing and manufacturing.\n\n(4) Test Marketing Stage - may or may not be used since it is an expensive and time-consuming process.  Test marketing involves evaluating various product options and alternatives.\n\n(5) Commercialization - It is very expensive to launch a new product so commercialization only applies to those specific products that are actually going to be sold to the market.\n\nProducts tend to be categorized as either:  Industrial goods and consumer goods\n\nIndustrial goods are used to produce other products .\n\nIndustrial goods may be further divided into:\n\n- Raw materials\n- Equipment\n- Pre-built materials \n- Supplies.\n\nConsumer goods are intended for consumption by the general public.\n\nConsumer goods may be further divided into:\n\n- Durable goods\n- Nondurable goods\n- Packaged goods\n\nA product may be a member of a product family or product line.\n\nA product family is a grouping of products or services that are related to each other by common function, functionality, design platform or similar characteristics.\n\nMembers of a product family frequently have many common parts and assemblies.\n\nProduct families are the highest level of grouping for forecasting, capacity planning or related functions.\n\nEx:\nThe Apple Macintosh family of products consists of the product lines:\n- Mac mini\n- MacBook Pro\n- Mac Pro\n\nA product line is a grouping of products that are closely related in usage, functionality or marketing characteristics.\n\nA Product Family typically is created to address one or five functions:\n\n1. To increase profits and not erode the sales of existing products\n\n2. To attract additional Markets or Market Segments\n\n3. To counter competitor's products\n\n4. To fill a gap in an existing Product Family.\n\n5. To promote sales of other products in the family line\n\nLine Depth refers to the number of products in the product line.\n\nLine consistency refers to how closely related the products are that make up the product line.\n\nLine vulnerability refers to the percentage of sales or profits that are derived from only a few products in the product line.\n\nProduct width refers to the number of different product lines sold by a company.\n\nProduct mix refers to the total number of products sold in all product lines.\n\nLine extension refers to the adding of a new product to a line.\n\n\"Trading up or brand leveraging\" refers to adding a product of better quality to a product line than the other products in that line.\n\n\"Trading down\" refers to adding a product of lesser quality to a product line than the other products in that line.\n\nIf a line of products is sold with the same brand name, this is referred to as family branding.\nStrategy and decisions regarding a product line are usually incorporated in a high-level marketing plan addressing product line strategy, sales, channels, distribution channels, pricing and related issues.\nA product-line manager is responsible for a product line and supervises several product managers who are responsible for individual products within the line.\nProduct-line managers typically have the following responsibilities:\n- Expansion and composition of a product line\n- Evaluate the effects of product mixes on the profitability of other items in the line\n- Planning and allocation of resources to individual products in the line\nA product is normally associated with a brand strategy - manufacturer, private or generic.\n\n1. Manufacturer-  or 'national' branding in which the brand is assigned by the manufacturer of the Product.\n\n2. Private - or 'dealer' branding in which the brand is assigned by the retailer or wholesaler of the Product.\n\n3. Generic - in which the Product is not marked with any identification.   Generic brands are a means for manufacturers to increase profits by saving on advertising, packaging or other costs associated with manufacturer or private branding.\n\nA brand is name, term, sign, symbol or design or a combination of these which identify the goods or services and differentiate them from those of competitors'\n\nA Trade mark is a brand or some part of the brand that is given legal protection because it is capable of exclusive appropriation and representation.\n\nManufacturers can use their own brands (known as Manufacturers' brands) or brands of their distributors (Distributors' brands).\n\nManufacturers/ distributors use brand names for a variety of reasons ranging from simple identification purposes to having legal protection for unique features of the products from imitations.\n\nBrands help consumers recognize certain quality parameters. In some cases, brands are just used to endow the product with unique story and character which itself can be a basis for product differentiation.\n\nIndividual brands have their own identity and the corporate or common name is not used to promote its equity.\n\nIndividual branding requires more expensive advertising and brand extensive brand creation investments.  By extension, each new brand does not benefit from the positive perceptions of earlier brands.\n\nBy contrast, family branding has several advantages.\n\nEach new product is quickly associated with the other products and brand in terms of quality and benefits.\n\nReduced or eliminated time for name identification and advertising for name recognition purposes.",
 								"DisplayFolderInfo": "{\"name\":\"Product\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "ProductId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -6987,27 +6945,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Item",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Item",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Item",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Item",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -7024,7 +6975,7 @@
 								"Description": "Something that is inventoried.\n\nA SKU, Stock keeping unit, refers to a specific item in a specific unit of measure.  \n\nFor example, if you distributed a specific chemical in both gallon containers and barrels then you would maintain the inventory as two SKUs even though they are both the same specific chemical.\n\nItems are classified as follows:\n\n- Tool\n- Product\n- Raw Material\n- Kit\n- Replacement Part\n- Unit\n- Miscellaneous Item",
 								"DisplayFolderInfo": "{\"name\":\"Inventory\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "ItemSku",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -8351,27 +8302,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Order",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Order",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -8388,7 +8332,7 @@
 								"Description": "A document or commission by the customer to order products.",
 								"DisplayFolderInfo": "{\"name\":\"Order\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "OrderId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -9678,27 +9622,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Transaction",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Transaction",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Transaction",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Transaction",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -9715,7 +9652,7 @@
 								"Description": "The lowest level of executable work or customer activity.\n\nA transaction consists of one or more discrete events.",
 								"DisplayFolderInfo": "{\"name\":\"Transaction\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "TransactionId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -10324,27 +10261,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Vendor",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Vendor",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Vendor",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Vendor",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -10361,7 +10291,7 @@
 								"Description": "A supplier of products, goods or services.",
 								"DisplayFolderInfo": "{\"name\":\"Vendor\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "VendorId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
@@ -10703,27 +10633,20 @@
 									}
 								],
 								"Format": {
-									"InputFormat": "org.apache.hadoop.mapred.SequenceFileInputFormat",
-									"OutputFormat": "org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat",
-									"FormatType": "csv",
-									"SerializeLib": "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe",
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Warehouse",
-										"delimiter": ",",
-										"multiLine": "false",
-										"firstRowAsHeader": "false",
-										"serialization.format": "1",
-										"escape": "\\",
-										"quote": "\"",
-										"FormatTypeSetToDatabaseDefault": true,
-										"header": "false"
+										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Warehouse",
+										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9/Warehouse",
+									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Warehouse",
 									"Properties": {
-										"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage",
+										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
 									}
 								},
@@ -10740,7 +10663,7 @@
 								"Description": "A structure designated for storage of things or items.\nA 'warehouse' is synonymous with 'stockroom'.",
 								"DisplayFolderInfo": "{\"name\":\"Inventory\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "WarehouseId",
-								"spark.sql.sources.provider": "csv"
+								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
 							"Temporary": false,
