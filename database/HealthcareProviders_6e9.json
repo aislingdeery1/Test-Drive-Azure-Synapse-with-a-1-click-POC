@@ -13,10 +13,10 @@
 		},
 		"Source": {
 			"Provider": "ADLS",
-			"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9",
+			"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders",
 			"Properties": {
-				"FormatType": "csv",
-				"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage"
+				"FormatType": "parquet",
+				"LinkedServiceName": "ADLS"
 			}
 		}
 	},
