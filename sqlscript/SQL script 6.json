@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 6",
+	"properties": {
+		"content": {
+			"query": "SELECT TOP (100) [ProductId]\n,[ProductName]\n,[ProductInternalName]\n,[ProductDescription]\n,[IntroductionDate]\n,[AvailabilityPeriodStartDate]\n,[AvailabilityPeriodEndDate]\n,[AbandonmentDate]\n,[BrandMark]\n,[Trademark]\n,[OfferingLogo]\n,[OfferingPriceAmount]\n,[BrandCategoryId]\n,[BrandTypeId]\n,[ItemSku]\n,[ProductTypeId]\n,[PrimaryBrandId]\n FROM [HealthcareProviders_6e9].[dbo].[HealthcareProduct]",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "HealthcareProviders_6e9",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

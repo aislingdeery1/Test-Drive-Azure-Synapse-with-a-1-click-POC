@@ -1319,13 +1319,13 @@
 				"FormatType": "parquet",
 				"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 				"Properties": {
-					"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
+					"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
 					"FormatTypeSetToDatabaseDefault": true
 				}
 			},
 			"Source": {
 				"Provider": "ADLS",
-				"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
+				"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
 				"Properties": {
 					"LinkedServiceName": "ADLS",
 					"LocationSetToDatabaseDefault": true

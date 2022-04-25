@@ -13,7 +13,7 @@
 		},
 		"Source": {
 			"Provider": "ADLS",
-			"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders",
+			"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders",
 			"Properties": {
 				"FormatType": "parquet",
 				"LinkedServiceName": "ADLS"
