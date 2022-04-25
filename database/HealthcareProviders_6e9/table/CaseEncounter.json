@@ -1,0 +1,105 @@
+{
+	"name": "CaseEncounter",
+	"properties": {
+		"Name": "CaseEncounter",
+		"EntityType": "TABLE",
+		"Namespace": {
+			"DatabaseName": "HealthcareProviders_6e9"
+		},
+		"Description": "The individuals encounter(s) comprising the Case.",
+		"TableType": "EXTERNAL",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"StorageDescriptor": {
+			"Columns": [
+				{
+					"Name": "EncounterId",
+					"Description": "The unique identifier of an Encounter with a Service Provider.",
+					"BaseAttributeReference": {
+						"Entity": "CaseEncounter.cdm.json/CaseEncounter",
+						"Name": "EncounterId"
+					},
+					"OriginDataTypeName": {
+						"TypeName": "long",
+						"IsComplexType": false,
+						"IsNullable": false,
+						"Properties": {
+							"HIVE_TYPE_STRING": "long"
+						}
+					}
+				},
+				{
+					"Name": "CaseId",
+					"Description": "The unique identifier of a Case.",
+					"BaseAttributeReference": {
+						"Entity": "CaseEncounter.cdm.json/CaseEncounter",
+						"Name": "CaseId"
+					},
+					"OriginDataTypeName": {
+						"TypeName": "integer",
+						"IsComplexType": false,
+						"IsNullable": false,
+						"Properties": {
+							"HIVE_TYPE_STRING": "integer"
+						}
+					}
+				},
+				{
+					"Name": "CaseEncounterNote",
+					"Description": "A note, comment or additional information regarding the case encounter.",
+					"BaseAttributeReference": {
+						"Entity": "CaseEncounter.cdm.json/CaseEncounter",
+						"Name": "CaseEncounterNote"
+					},
+					"OriginDataTypeName": {
+						"TypeName": "string",
+						"IsComplexType": false,
+						"IsNullable": true,
+						"Length": 2048,
+						"Properties": {
+							"HIVE_TYPE_STRING": "string"
+						}
+					}
+				}
+			],
+			"Format": {
+				"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+				"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+				"FormatType": "parquet",
+				"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+				"Properties": {
+					"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/CaseEncounter",
+					"FormatTypeSetToDatabaseDefault": true
+				}
+			},
+			"Source": {
+				"Provider": "ADLS",
+				"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/CaseEncounter",
+				"Properties": {
+					"LinkedServiceName": "ADLS",
+					"LocationSetToDatabaseDefault": true
+				}
+			},
+			"Properties": {
+				"textinputformat.record.delimiter": ",",
+				"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+				"derivedModelAttributeInfo": "{\"attributeReferences\":{\"EncounterId\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"EncounterId\"},\"CaseId\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseId\"},\"CaseEncounterNote\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseEncounterNote\"}}}"
+			},
+			"Compressed": false,
+			"IsStoredAsSubdirectories": false
+		},
+		"Properties": {
+			"DerivedModelEntityInfo": "{\"entityDirectives\":{\"baseEntityReference\":{\"name\":\"CaseEncounter\",\"path\":\"CaseEncounter.cdm.json/CaseEncounter\"},\"description\":\"The individuals encounter(s) comprising the Case.\",\"primaryKey\":[\"EncounterId\",\"CaseId\"],\"projectionInfo\":{\"attributes\":[{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"EncounterId\"},\"dataType\":\"long\",\"description\":\"The unique identifier of an Encounter with a Service Provider.\",\"isNullable\":false,\"name\":\"EncounterId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Case.\",\"isNullable\":false,\"name\":\"CaseId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseEncounterNote\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"A note, comment or additional information regarding the case encounter.\",\"isNullable\":true,\"name\":\"CaseEncounterNote\"}]}}}",
+			"Description": "The individuals encounter(s) comprising the Case.",
+			"DisplayFolderInfo": "{\"name\":\"Encounter\",\"colorCode\":\"#042C59\"}",
+			"PrimaryKeys": "EncounterId,CaseId",
+			"spark.sql.sources.provider": "parquet",
+			"sql:IsAppendOnly": false
+		},
+		"Retention": 0,
+		"Temporary": false,
+		"IsRewriteEnabled": false
+	},
+	"type": "TABLE"
+}

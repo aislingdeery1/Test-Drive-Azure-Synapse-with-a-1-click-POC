@@ -16,6 +16,10 @@
 				{
 					"Name": "CustomerId",
 					"Description": "The unique identifier of a Customer.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "CustomerId"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "long",
 						"IsComplexType": false,
@@ -23,15 +27,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "long"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "CustomerId"
 					}
 				},
 				{
 					"Name": "CustomerEstablishedDate",
 					"Description": "The date that the Customer relationship was established.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "CustomerEstablishedDate"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "date",
 						"IsComplexType": false,
@@ -40,15 +44,15 @@
 							"DateFormat": "YYYY-MM-DD",
 							"HIVE_TYPE_STRING": "date"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "CustomerEstablishedDate"
 					}
 				},
 				{
 					"Name": "CustomerTypeId",
 					"Description": "The unique identifier of a Customer Type.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "CustomerTypeId"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "integer",
 						"IsComplexType": false,
@@ -56,15 +60,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "integer"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "CustomerTypeId"
 					}
 				},
 				{
 					"Name": "ResponsibilityCenterId",
 					"Description": "The unique identifier of a Responsibility Center.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "ResponsibilityCenterId"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "integer",
 						"IsComplexType": false,
@@ -72,15 +76,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "integer"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "ResponsibilityCenterId"
 					}
 				},
 				{
 					"Name": "LedgerId",
 					"Description": "The unique identifier of a Ledger.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "LedgerId"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "integer",
 						"IsComplexType": false,
@@ -88,15 +92,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "integer"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "LedgerId"
 					}
 				},
 				{
 					"Name": "LedgerAccountNumber",
 					"Description": "The unique identifier of a Ledger Account.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "LedgerAccountNumber"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "string",
 						"IsComplexType": false,
@@ -105,15 +109,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "string"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "LedgerAccountNumber"
 					}
 				},
 				{
 					"Name": "CustomerNote",
 					"Description": "A note, comment or additional information regarding the Customer.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "CustomerNote"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "string",
 						"IsComplexType": false,
@@ -122,15 +126,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "string"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "CustomerNote"
 					}
 				},
 				{
 					"Name": "PartyId",
 					"Description": "The unique identifier of a Party.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "PartyId"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "long",
 						"IsComplexType": false,
@@ -138,15 +142,15 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "long"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "PartyId"
 					}
 				},
 				{
 					"Name": "GlobalLocationNumber",
 					"Description": "The Global Location Number (GLN) is a simple tool used to uniquely identify locations. It can be used to identify physical locations such as a warehouse, legal entities, or a function / department within a legal entity. The GLN is part of the GS1 system of standards.",
+					"BaseAttributeReference": {
+						"Entity": "Customer.cdm.json/Customer",
+						"Name": "GlobalLocationNumber"
+					},
 					"OriginDataTypeName": {
 						"TypeName": "decimal",
 						"IsComplexType": false,
@@ -156,10 +160,6 @@
 						"Properties": {
 							"HIVE_TYPE_STRING": "decimal"
 						}
-					},
-					"BaseAttributeReference": {
-						"Entity": "Customer.cdm.json/Customer",
-						"Name": "GlobalLocationNumber"
 					}
 				}
 			],
@@ -183,7 +183,7 @@
 			},
 			"Properties": {
 				"textinputformat.record.delimiter": ",",
-				"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+				"compression": "",
 				"derivedModelAttributeInfo": "{\"attributeReferences\":{\"CustomerId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerId\"},\"CustomerEstablishedDate\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerEstablishedDate\"},\"CustomerTypeId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerTypeId\"},\"ResponsibilityCenterId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"ResponsibilityCenterId\"},\"LedgerId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"LedgerId\"},\"LedgerAccountNumber\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"LedgerAccountNumber\"},\"CustomerNote\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerNote\"},\"PartyId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"PartyId\"},\"GlobalLocationNumber\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"GlobalLocationNumber\"}}}"
 			},
 			"Compressed": false,
