@@ -1,0 +1,24 @@
+{
+	"name": "HealthcareProviders_6e9",
+	"properties": {
+		"Name": "HealthcareProviders_6e9",
+		"EntityType": "DATABASE",
+		"Description": "",
+		"Origin": {
+			"Type": "SPARK"
+		},
+		"Properties": {
+			"DerivedModelDBInfo": "{\"ModelDirectives\":{\"BaseModel\":{\"Name\":\"HealthcareProviders\",\"Version\":\"1.0.0\"}}}",
+			"IsSyMSCDMDatabase": true
+		},
+		"Source": {
+			"Provider": "ADLS",
+			"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders_6e9",
+			"Properties": {
+				"FormatType": "csv",
+				"LinkedServiceName": "ads3tf6pxfizs3rgpocws1-WorkspaceDefaultStorage"
+			}
+		}
+	},
+	"type": "DATABASE"
+}
