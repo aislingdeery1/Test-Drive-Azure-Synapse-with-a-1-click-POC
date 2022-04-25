@@ -2521,6 +2521,26 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/SQL script 6')]",
+			"type": "Microsoft.Synapse/workspaces/sqlscripts",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"content": {
+					"query": "SELECT TOP (100) [ProductId]\n,[ProductName]\n,[ProductInternalName]\n,[ProductDescription]\n,[IntroductionDate]\n,[AvailabilityPeriodStartDate]\n,[AvailabilityPeriodEndDate]\n,[AbandonmentDate]\n,[BrandMark]\n,[Trademark]\n,[OfferingLogo]\n,[OfferingPriceAmount]\n,[BrandCategoryId]\n,[BrandTypeId]\n,[ItemSku]\n,[ProductTypeId]\n,[PrimaryBrandId]\n FROM [HealthcareProviders_6e9].[dbo].[HealthcareProduct]",
+					"metadata": {
+						"language": "sql"
+					},
+					"currentConnection": {
+						"databaseName": "HealthcareProviders_6e9",
+						"poolName": "Built-in"
+					},
+					"resultLimit": 5000
+				},
+				"type": "SqlQuery"
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/SQL_MoviesComedyRating')]",
 			"type": "Microsoft.Synapse/workspaces/sqlscripts",
 			"apiVersion": "2019-06-01-preview",
@@ -3202,7 +3222,7 @@
 							},
 							"Source": {
 								"Provider": "ADLS",
-								"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders",
+								"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders",
 								"Properties": {
 									"FormatType": "parquet",
 									"LinkedServiceName": "ADLS"
@@ -3749,13 +3769,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Channel",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Channel",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Channel",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Channel",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -4038,13 +4058,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Communication",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Communication",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Communication",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Communication",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -4245,13 +4265,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Customer",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Customer",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Customer",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Customer",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -4750,13 +4770,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Document",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Document",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Document",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Document",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -5136,13 +5156,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Employee",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Employee",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Employee",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Employee",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -5476,13 +5496,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/HealthcareProduct",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/HealthcareProduct",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/HealthcareProduct",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/HealthcareProduct",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -6950,13 +6970,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Item",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Item",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Item",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Item",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -8307,13 +8327,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Order",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -9627,13 +9647,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Transaction",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Transaction",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Transaction",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Transaction",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -10266,13 +10286,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Vendor",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Vendor",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Vendor",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Vendor",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
@@ -10638,13 +10658,13 @@
 									"FormatType": "parquet",
 									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
 									"Properties": {
-										"path": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Warehouse",
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Warehouse",
 										"FormatTypeSetToDatabaseDefault": true
 									}
 								},
 								"Source": {
 									"Provider": "ADLS",
-									"Location": "abfss://dlsadspocfs1@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Warehouse",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Warehouse",
 									"Properties": {
 										"LinkedServiceName": "ADLS",
 										"LocationSetToDatabaseDefault": true
