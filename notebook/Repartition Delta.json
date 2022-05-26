@@ -1,9 +1,6 @@
 {
-	"name": "Write To Delta",
+	"name": "Repartition Delta",
 	"properties": {
-		"folder": {
-			"name": "Data Management"
-		},
 		"nbformat": 4,
 		"nbformat_minor": 2,
 		"bigDataPool": {
@@ -20,7 +17,7 @@
 				"spark.dynamicAllocation.enabled": "false",
 				"spark.dynamicAllocation.minExecutors": "2",
 				"spark.dynamicAllocation.maxExecutors": "2",
-				"spark.autotune.trackingId": "156cbdb1-8bac-4ed7-8127-9304ff247195"
+				"spark.autotune.trackingId": "e1617116-00df-40b5-a9b6-5af5088cfc81"
 			}
 		},
 		"metadata": {
@@ -52,20 +49,18 @@
 		},
 		"cells": [
 			{
-				"cell_type": "markdown",
+				"cell_type": "code",
 				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
 					"nteract": {
 						"transient": {
 							"deleting": false
 						}
 					}
 				},
-				"source": [
-					"https://github.com/Azure-Samples/Synapse/blob/main/Notebooks/PySpark/Hitchikers%20Guide%20to%20Delta%20Lake%20-%20Python.ipynb"
-				]
-			},
-			{
-				"cell_type": "code",
 				"source": [
 					"import random\r\n",
 					"\r\n",
@@ -74,7 +69,7 @@
 					"\r\n",
 					"delta_table_path"
 				],
-				"execution_count": 2
+				"execution_count": 9
 			},
 			{
 				"cell_type": "code",
@@ -87,33 +82,20 @@
 						"transient": {
 							"deleting": false
 						}
-					}
-				},
-				"source": [
-					"data = spark.range(0,5)\r\n",
-					"data.show()\r\n",
-					"data.write.format(\"delta\").save(delta_table_path)"
-				],
-				"execution_count": 3
-			},
-			{
-				"cell_type": "code",
-				"metadata": {
-					"jupyter": {
-						"source_hidden": false,
-						"outputs_hidden": false
 					},
-					"nteract": {
-						"transient": {
-							"deleting": false
-						}
+					"microsoft": {
+						"language": "python"
 					}
 				},
 				"source": [
-					"df = spark.read.format(\"delta\").load(delta_table_path)\r\n",
-					"df.show()"
+					"%%pyspark\r\n",
+					"df = spark.read.load('abfss://public@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/trip-data.csv', format='csv'\r\n",
+					"## If header exists uncomment line below\r\n",
+					", header=True\r\n",
+					")\r\n",
+					"df.write.format(\"delta\").mode(\"overwrite\").save(delta_table_path)"
 				],
-				"execution_count": 4
+				"execution_count": 10
 			},
 			{
 				"cell_type": "code",
@@ -131,7 +113,43 @@
 				"source": [
 					"[log_line.value for log_line in spark.read.text(delta_table_path + \"/_delta_log/\").collect()]"
 				],
-				"execution_count": 5
+				"execution_count": 11
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"df.write.format(\"delta\").mode(\"overwrite\").option(\"overwriteSchema\", \"true\").partitionBy(\"vendor_id\").save(delta_table_path)"
+				],
+				"execution_count": 14
+			},
+			{
+				"cell_type": "code",
+				"metadata": {
+					"jupyter": {
+						"source_hidden": false,
+						"outputs_hidden": false
+					},
+					"nteract": {
+						"transient": {
+							"deleting": false
+						}
+					}
+				},
+				"source": [
+					"[log_line.value for log_line in spark.read.text(delta_table_path + \"/_delta_log/\").collect()]"
+				],
+				"execution_count": 15
 			}
 		]
 	}
