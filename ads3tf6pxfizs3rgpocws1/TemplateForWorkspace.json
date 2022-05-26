@@ -85,6 +85,15 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('workspaceName'), '/ws1sparkpool1')]",
+			"type": "Microsoft.Synapse/workspaces/bigDataPools",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Raw_to_SQLDB')]",
 			"type": "Microsoft.Synapse/workspaces/pipelines",
 			"apiVersion": "2019-06-01-preview",
@@ -2946,6 +2955,500 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/DeltaLakeOptimize')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"folder": {
+					"name": "Data Management"
+				},
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ws1sparkpool1",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "56g",
+					"driverCores": 8,
+					"executorMemory": "56g",
+					"executorCores": 8,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "97876f6b-a8e0-4330-951b-a51238a93c29"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "scala"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-dataintegration/providers/Microsoft.Synapse/workspaces/ads3tf6pxfizs3rgpocws1/bigDataPools/ws1sparkpool1",
+						"name": "ws1sparkpool1",
+						"type": "Spark",
+						"endpoint": "https://ads3tf6pxfizs3rgpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 5,
+						"cores": 8,
+						"memory": 56
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"# Delta Lake OPTIMIZE"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"val sessionId = scala.util.Random.nextInt(1000000)\r\n",
+							"val dataPath = s\"/deltaoptimizetest/data-$sessionId\";\r\n",
+							"\r\n",
+							"val numFiles = 1000"
+						],
+						"outputs": [],
+						"execution_count": 1
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Data preparation"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"spark.range(50000000).map { _ =>\r\n",
+							"    (scala.util.Random.nextInt(10000000).toLong, scala.util.Random.nextInt(1000000000), scala.util.Random.nextInt(2))\r\n",
+							"}.toDF(\"colA\", \"colB\", \"colC\").repartition(numFiles).write.mode(\"overwrite\").format(\"delta\").partitionBy(\"colC\").save(dataPath)\r\n",
+							"\r\n",
+							"// 50M rows with random integers stored in numFiles * 2 parquet files in colC=0, colC=1 partition"
+						],
+						"outputs": [],
+						"execution_count": 2
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"// spark.conf.get(\"spark.databricks.delta.optimize.maxFileSize\")\r\n",
+							"spark.conf.get(\"spark.executor.instances\")"
+						],
+						"outputs": [],
+						"execution_count": 4
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Optimize dataset\r\n",
+							"\r\n",
+							"Optimize will compact small target files into larger files.\r\n",
+							"Target files are\r\n",
+							"- smaller than `spark.databricks.delta.optimize.maxFileSize` (default 1GB) AND\r\n",
+							"- under the corresponding partitions if partition filter condition is specified.\r\n",
+							"\r\n",
+							"Optimize won't optimize the target files if\r\n",
+							"- only one file in the partition\r\n",
+							"- no candidate for compaction e.g. 2 files of 700MB & maxFileSize=1GB\r\n",
+							""
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"print(spark.conf.get(\"spark.databricks.delta.optimize.maxFileSize\"))"
+						],
+						"outputs": [],
+						"execution_count": 5
+					},
+					{
+						"cell_type": "code",
+						"source": [
+							"val dt = io.delta.tables.DeltaTable.forPath(dataPath)\r\n",
+							"\r\n",
+							"// optimize API supports filter condition for partitioned columns. Below will optimize the files under \"colC=1\" only.\r\n",
+							"dt.optimize(\"colC = 1\").show\r\n",
+							"// optimize API returns statistics in Dataframe"
+						],
+						"outputs": [],
+						"execution_count": 6
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"// optimize all files\r\n",
+							"dt.optimize().show"
+						],
+						"outputs": [],
+						"execution_count": 7
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Check performance without optimize"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"def measure(f : => Unit) {\r\n",
+							"    val start = System.nanoTime\r\n",
+							"    f\r\n",
+							"    val durationInMS = (System.nanoTime - start) / 1000 / 1000\r\n",
+							"    println(\"duration(ms): \" + durationInMS )\r\n",
+							"}"
+						],
+						"outputs": [],
+						"execution_count": 8
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Use version 0 for non-optimized data\r\n",
+							"val df = spark.read.format(\"delta\").option(\"versionAsOf\", \"0\").load(dataPath)\r\n",
+							"val agg = df.agg(avg(\"colA\"))\r\n",
+							"measure(println(agg.collect))"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Check performance after optimize"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": true
+						},
+						"source": [
+							"// Use the latest version for optimized data\r\n",
+							"val df = spark.read.format(\"delta\").load(dataPath)\r\n",
+							"val agg = df.agg(avg(\"colA\"))\r\n",
+							"measure(println(agg.collect))"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Spark SQL support\r\n",
+							"\r\n",
+							"Note: partition filter condition does not support in Spark SQL yet."
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"collapsed": false
+						},
+						"source": [
+							"// This won't optimize anything since the table is already optimized.\r\n",
+							"spark.sql(s\"OPTIMIZE delta.`$dataPath`\").show"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### zOrder - Example"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(s\"OPTIMIZE delta.`$dataPath` ZORDER BY (ColA)\").show"
+						],
+						"outputs": [],
+						"execution_count": 12
+					},
+					{
+						"cell_type": "markdown",
+						"metadata": {
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"### Temp Area"
+						]
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "python"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%pyspark\r\n",
+							"from delta.tables import *\r\n",
+							"dt = DeltaTable.forPath(spark, '/deltaoptimizetest/data-246486')\r\n",
+							"display(dt.optimize(condition = \"colC = 1\"))\r\n",
+							"\r\n",
+							"# display(dt.optimize(condition = \"colC = 1\", zOrderBy = \"colA\"))\r\n",
+							"# help(dt.optimize)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"spark.sql(s\"CREATE TABLE sampledata USING DELTA LOCATION '$dataPath'\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "sparksql"
+							},
+							"collapsed": false
+						},
+						"source": [
+							"%%sql\r\n",
+							"OPTIMIZE sampledata ZORDER BY (ColA)"
+						],
+						"outputs": [],
+						"execution_count": null
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							""
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Notebook 1')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
@@ -3036,6 +3539,243 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('workspaceName'), '/Notebook 2')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ws1sparkpool1",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "28g",
+					"driverCores": 4,
+					"executorMemory": "28g",
+					"executorCores": 4,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "26b95302-7193-428a-8511-b2a5150929ca"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-dataintegration/providers/Microsoft.Synapse/workspaces/ads3tf6pxfizs3rgpocws1/bigDataPools/ws1sparkpool1",
+						"name": "ws1sparkpool1",
+						"type": "Spark",
+						"endpoint": "https://ads3tf6pxfizs3rgpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 5,
+						"cores": 8,
+						"memory": 56
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"microsoft": {
+								"language": "python"
+							}
+						},
+						"source": [
+							"%%pyspark\r\n",
+							"df = spark.read.load('abfss://public@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/trip-data.csv', format='csv'\r\n",
+							"## If header exists uncomment line below\r\n",
+							"##, header=True\r\n",
+							")\r\n",
+							"df.write.mode(\"overwrite\").saveAsTable(\"default.YourTableName\")"
+						],
+						"outputs": [],
+						"execution_count": null
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('workspaceName'), '/Repartition Delta')]",
+			"type": "Microsoft.Synapse/workspaces/notebooks",
+			"apiVersion": "2019-06-01-preview",
+			"properties": {
+				"nbformat": 4,
+				"nbformat_minor": 2,
+				"bigDataPool": {
+					"referenceName": "ws1sparkpool1",
+					"type": "BigDataPoolReference"
+				},
+				"sessionProperties": {
+					"driverMemory": "56g",
+					"driverCores": 8,
+					"executorMemory": "56g",
+					"executorCores": 8,
+					"numExecutors": 2,
+					"conf": {
+						"spark.dynamicAllocation.enabled": "false",
+						"spark.dynamicAllocation.minExecutors": "2",
+						"spark.dynamicAllocation.maxExecutors": "2",
+						"spark.autotune.trackingId": "8dd12be8-ea5b-4e32-8b3c-fcfe019a0186"
+					}
+				},
+				"metadata": {
+					"saveOutput": true,
+					"enableDebugMode": false,
+					"kernelspec": {
+						"name": "synapse_pyspark",
+						"display_name": "Synapse PySpark"
+					},
+					"language_info": {
+						"name": "python"
+					},
+					"a365ComputeOptions": {
+						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-dataintegration/providers/Microsoft.Synapse/workspaces/ads3tf6pxfizs3rgpocws1/bigDataPools/ws1sparkpool1",
+						"name": "ws1sparkpool1",
+						"type": "Spark",
+						"endpoint": "https://ads3tf6pxfizs3rgpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
+						"auth": {
+							"type": "AAD",
+							"authResource": "https://dev.azuresynapse.net"
+						},
+						"sparkVersion": "2.4",
+						"nodeCount": 5,
+						"cores": 8,
+						"memory": 56,
+						"automaticScaleJobs": false
+					},
+					"sessionKeepAliveTimeout": 30
+				},
+				"cells": [
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"import random\r\n",
+							"\r\n",
+							"session_id = random.randint(0,1000000)\r\n",
+							"delta_table_path = \"/delta/delta-table-{0}\".format(session_id)\r\n",
+							"\r\n",
+							"delta_table_path"
+						],
+						"outputs": [],
+						"execution_count": 9
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							},
+							"microsoft": {
+								"language": "python"
+							}
+						},
+						"source": [
+							"%%pyspark\r\n",
+							"df = spark.read.load('abfss://public@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/trip-data.csv', format='csv'\r\n",
+							"## If header exists uncomment line below\r\n",
+							", header=True\r\n",
+							")\r\n",
+							"df.write.format(\"delta\").mode(\"overwrite\").save(delta_table_path)"
+						],
+						"outputs": [],
+						"execution_count": 10
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"[log_line.value for log_line in spark.read.text(delta_table_path + \"/_delta_log/\").collect()]"
+						],
+						"outputs": [],
+						"execution_count": 11
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"df.write.format(\"delta\").mode(\"overwrite\").option(\"overwriteSchema\", \"true\").partitionBy(\"vendor_id\").save(delta_table_path)"
+						],
+						"outputs": [],
+						"execution_count": 14
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"[log_line.value for log_line in spark.read.text(delta_table_path + \"/_delta_log/\").collect()]"
+						],
+						"outputs": [],
+						"execution_count": 15
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('workspaceName'), '/Write To Delta')]",
 			"type": "Microsoft.Synapse/workspaces/notebooks",
 			"apiVersion": "2019-06-01-preview",
@@ -3059,7 +3799,7 @@
 						"spark.dynamicAllocation.enabled": "false",
 						"spark.dynamicAllocation.minExecutors": "2",
 						"spark.dynamicAllocation.maxExecutors": "2",
-						"spark.autotune.trackingId": "843c2dc3-d7a5-47f7-b333-877611e0d49d"
+						"spark.autotune.trackingId": "156cbdb1-8bac-4ed7-8127-9304ff247195"
 					}
 				},
 				"metadata": {
@@ -3073,10 +3813,10 @@
 						"name": "python"
 					},
 					"a365ComputeOptions": {
-						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-synapse-one-click/providers/Microsoft.Synapse/workspaces/aisltx5fjw3gpqcmpocws1/bigDataPools/ws1sparkpool1",
+						"id": "/subscriptions/798e3660-52d8-404d-a9b2-446b348f4e80/resourceGroups/rg-dataintegration/providers/Microsoft.Synapse/workspaces/ads3tf6pxfizs3rgpocws1/bigDataPools/ws1sparkpool1",
 						"name": "ws1sparkpool1",
 						"type": "Spark",
-						"endpoint": "https://aisltx5fjw3gpqcmpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
+						"endpoint": "https://ads3tf6pxfizs3rgpocws1.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/ws1sparkpool1",
 						"auth": {
 							"type": "AAD",
 							"authResource": "https://dev.azuresynapse.net"
@@ -3084,8 +3824,7 @@
 						"sparkVersion": "2.4",
 						"nodeCount": 5,
 						"cores": 8,
-						"memory": 56,
-						"extraHeader": null
+						"memory": 56
 					},
 					"sessionKeepAliveTimeout": 30
 				},
@@ -3101,8 +3840,7 @@
 						},
 						"source": [
 							"https://github.com/Azure-Samples/Synapse/blob/main/Notebooks/PySpark/Hitchikers%20Guide%20to%20Delta%20Lake%20-%20Python.ipynb"
-						],
-						"attachments": null
+						]
 					},
 					{
 						"cell_type": "code",
@@ -3114,9 +3852,8 @@
 							"\r\n",
 							"delta_table_path"
 						],
-						"attachments": null,
 						"outputs": [],
-						"execution_count": 6
+						"execution_count": 2
 					},
 					{
 						"cell_type": "code",
@@ -3136,9 +3873,8 @@
 							"data.show()\r\n",
 							"data.write.format(\"delta\").save(delta_table_path)"
 						],
-						"attachments": null,
 						"outputs": [],
-						"execution_count": 11
+						"execution_count": 3
 					},
 					{
 						"cell_type": "code",
@@ -3157,9 +3893,27 @@
 							"df = spark.read.format(\"delta\").load(delta_table_path)\r\n",
 							"df.show()"
 						],
-						"attachments": null,
 						"outputs": [],
-						"execution_count": 12
+						"execution_count": 4
+					},
+					{
+						"cell_type": "code",
+						"metadata": {
+							"jupyter": {
+								"source_hidden": false,
+								"outputs_hidden": false
+							},
+							"nteract": {
+								"transient": {
+									"deleting": false
+								}
+							}
+						},
+						"source": [
+							"[log_line.value for log_line in spark.read.text(delta_table_path + \"/_delta_log/\").collect()]"
+						],
+						"outputs": [],
+						"execution_count": 5
 					}
 				]
 			},
@@ -3228,6 +3982,113 @@
 									"LinkedServiceName": "ADLS"
 								}
 							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "CaseEncounter",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "HealthcareProviders_6e9"
+							},
+							"Description": "The individuals encounter(s) comprising the Case.",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "EncounterId",
+										"Description": "The unique identifier of an Encounter with a Service Provider.",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": false,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "CaseEncounter.cdm.json/CaseEncounter",
+											"Name": "EncounterId"
+										}
+									},
+									{
+										"Name": "CaseId",
+										"Description": "The unique identifier of a Case.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": false,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "CaseEncounter.cdm.json/CaseEncounter",
+											"Name": "CaseId"
+										}
+									},
+									{
+										"Name": "CaseEncounterNote",
+										"Description": "A note, comment or additional information regarding the case encounter.",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 2048,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "CaseEncounter.cdm.json/CaseEncounter",
+											"Name": "CaseEncounterNote"
+										}
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+									"Properties": {
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/CaseEncounter",
+										"FormatTypeSetToDatabaseDefault": true
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/CaseEncounter",
+									"Properties": {
+										"LinkedServiceName": "ADLS",
+										"LocationSetToDatabaseDefault": true
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"EncounterId\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"EncounterId\"},\"CaseId\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseId\"},\"CaseEncounterNote\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseEncounterNote\"}}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"DerivedModelEntityInfo": "{\"entityDirectives\":{\"baseEntityReference\":{\"name\":\"CaseEncounter\",\"path\":\"CaseEncounter.cdm.json/CaseEncounter\"},\"description\":\"The individuals encounter(s) comprising the Case.\",\"primaryKey\":[\"EncounterId\",\"CaseId\"],\"projectionInfo\":{\"attributes\":[{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"EncounterId\"},\"dataType\":\"long\",\"description\":\"The unique identifier of an Encounter with a Service Provider.\",\"isNullable\":false,\"name\":\"EncounterId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Case.\",\"isNullable\":false,\"name\":\"CaseId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"name\":\"CaseEncounterNote\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"A note, comment or additional information regarding the case encounter.\",\"isNullable\":true,\"name\":\"CaseEncounterNote\"}]}}}",
+								"Description": "The individuals encounter(s) comprising the Case.",
+								"DisplayFolderInfo": "{\"name\":\"Encounter\",\"colorCode\":\"#042C59\"}",
+								"PrimaryKeys": "EncounterId,CaseId",
+								"spark.sql.sources.provider": "parquet"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
 						},
 						"Source": {
 							"Type": "SPARK"
@@ -3783,7 +4644,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"ChannelId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelId\"},\"ChannelName\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelName\"},\"ChannelCode\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelCode\"},\"LocationId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"LocationId\"},\"ChannelLogo\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelLogo\"},\"TelephoneNumber\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"TelephoneNumber\"},\"FaxNumber\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"FaxNumber\"},\"EmailAddress\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"EmailAddress\"},\"ChannelCommencementDate\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelCommencementDate\"},\"ChannelCloseDate\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelCloseDate\"},\"ChannelCategoryId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelCategoryId\"},\"ChannelTypeId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"ChannelTypeId\"},\"PartyId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"PartyId\"},\"DunsNumber\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunsNumber\"},\"DunBradstreetSingleLocationSubsidiary\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetSingleLocationSubsidiary\"},\"DunBradstreetHeadquarters\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetHeadquarters\"},\"DunBradstreetBranch\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetBranch\"},\"DunBradstreetDivision\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetDivision\"},\"DunBradstreetSubsidiary\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetSubsidiary\"},\"DunBradstreetParent\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetParent\"},\"DunBradstreetUltimate\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetUltimate\"},\"DunBradstreetGlobalUltimate\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DunBradstreetGlobalUltimate\"},\"SicIndustryCode\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"SicIndustryCode\"},\"NaicsNationalIndustryCode\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"NaicsNationalIndustryCode\"},\"AnzsicClassCode\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"AnzsicClassCode\"},\"TerritoryId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"TerritoryId\"},\"AreaId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"AreaId\"},\"RegionId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"RegionId\"},\"DistrictId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"DistrictId\"},\"BrandId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"BrandId\"},\"FranchiseeId\":{\"entity\":\"Channel.cdm.json/Channel\",\"name\":\"FranchiseeId\"}}}"
 								},
 								"Compressed": false,
@@ -4072,7 +4933,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"CommunicationId\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationId\"},\"CommunicationStartTimestamp\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationStartTimestamp\"},\"CommunicationEndTimestamp\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationEndTimestamp\"},\"CommunicationDescription\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationDescription\"},\"CommunicationNote\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationNote\"},\"CommunicationQueueTime\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationQueueTime\"},\"CommunicationHoldTime\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationHoldTime\"},\"InboundOutboundCommunicationIndicator\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"InboundOutboundCommunicationIndicator\"},\"CommunicationText\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationText\"},\"CommunicationMethodId\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationMethodId\"},\"CommunicationTypeId\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationTypeId\"},\"CommunicationStatusId\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationStatusId\"},\"CommunicationPriorityId\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"CommunicationPriorityId\"},\"IsoLanguageId\":{\"entity\":\"Communication.cdm.json/Communication\",\"name\":\"IsoLanguageId\"}}}"
 								},
 								"Compressed": false,
@@ -4279,7 +5140,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"CustomerId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerId\"},\"CustomerEstablishedDate\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerEstablishedDate\"},\"CustomerTypeId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerTypeId\"},\"ResponsibilityCenterId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"ResponsibilityCenterId\"},\"LedgerId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"LedgerId\"},\"LedgerAccountNumber\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"LedgerAccountNumber\"},\"CustomerNote\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"CustomerNote\"},\"PartyId\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"PartyId\"},\"GlobalLocationNumber\":{\"entity\":\"Customer.cdm.json/Customer\",\"name\":\"GlobalLocationNumber\"}}}"
 								},
 								"Compressed": false,
@@ -4784,7 +5645,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"DocumentId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentId\"},\"DocumentName\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentName\"},\"DocumentDescription\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentDescription\"},\"GlobalDocumentTypeIdentifier\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"GlobalDocumentTypeIdentifier\"},\"DocumentScopeStatement\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentScopeStatement\"},\"DocumentRevisionNumber\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentRevisionNumber\"},\"DocumentCreatedTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentCreatedTimestamp\"},\"DocumentCompletedTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentCompletedTimestamp\"},\"DocumentFiledTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentFiledTimestamp\"},\"DocumentFirstPublishedTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentFirstPublishedTimestamp\"},\"DocumentMinimumRetentionTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentMinimumRetentionTimestamp\"},\"DocumentCopyrightTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentCopyrightTimestamp\"},\"DocumentDeletedTimestamp\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentDeletedTimestamp\"},\"DocumentImage\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentImage\"},\"DocumentText\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentText\"},\"DocumentNote\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentNote\"},\"NumberOfPages\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"NumberOfPages\"},\"PageSize\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"PageSize\"},\"DocumentUrl\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentUrl\"},\"IsoLanguageId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"IsoLanguageId\"},\"DeliveryMethodId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DeliveryMethodId\"},\"DocumentFormatTypeId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentFormatTypeId\"},\"DocumentTypeId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"DocumentTypeId\"},\"MediaTypeId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"MediaTypeId\"},\"CountryId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"CountryId\"},\"StateId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"StateId\"},\"IdentificationId\":{\"entity\":\"Document.cdm.json/Document\",\"name\":\"IdentificationId\"}}}"
 								},
 								"Compressed": false,
@@ -5170,7 +6031,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"EmployeeId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EmployeeId\"},\"EmployeeName\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EmployeeName\"},\"DateOfBirth\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"DateOfBirth\"},\"DateOfDeath\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"DateOfDeath\"},\"EmployeeStandardCostAmount\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EmployeeStandardCostAmount\"},\"EmployeeOvertimeCostAmount\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EmployeeOvertimeCostAmount\"},\"EmployeeHireDate\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EmployeeHireDate\"},\"HighlyCompensatedEmployeeIndicator\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"HighlyCompensatedEmployeeIndicator\"},\"KeyEmployeeIndicator\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"KeyEmployeeIndicator\"},\"ExemptEmployeeIndicator\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"ExemptEmployeeIndicator\"},\"NonexemptEmployeeIndicator\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"NonexemptEmployeeIndicator\"},\"AlienStatusId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"AlienStatusId\"},\"SexId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"SexId\"},\"GenderId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"GenderId\"},\"RacialCategoryId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"RacialCategoryId\"},\"EthnicCategoryId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EthnicCategoryId\"},\"EmploymentLeadSourceId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"EmploymentLeadSourceId\"},\"SecurityClearanceId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"SecurityClearanceId\"},\"SecurityLevelId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"SecurityLevelId\"},\"PartyId\":{\"entity\":\"Employee.cdm.json/Employee\",\"name\":\"PartyId\"}}}"
 								},
 								"Compressed": false,
@@ -5181,6 +6042,602 @@
 								"Description": "An individual who is hired to provide services to a company on a regular basis in exchange for compensation.",
 								"DisplayFolderInfo": "{\"name\":\"Human Resources & Payroll\",\"colorCode\":\"\"}",
 								"PrimaryKeys": "EmployeeId",
+								"spark.sql.sources.provider": "parquet"
+							},
+							"Retention": 0,
+							"Temporary": false,
+							"IsRewriteEnabled": false
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "Encounter",
+							"EntityType": "TABLE",
+							"Namespace": {
+								"DatabaseName": "HealthcareProviders_6e9"
+							},
+							"Description": "A contact between an individual and the health care system for a health care service or set of services related to one or more medical conditions involving one or more tests, service, medical procedures, products, items, ancillary services etc. \n\nSome organizations refer to this as an Episode of Care, while others prefer to think of a group of related Encounters as an Episode of Care.",
+							"TableType": "EXTERNAL",
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"StorageDescriptor": {
+								"Columns": [
+									{
+										"Name": "EncounterId",
+										"Description": "The unique identifier of an Encounter with a Service Provider.",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": false,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EncounterId"
+										}
+									},
+									{
+										"Name": "EncounterScheduledTimestamp",
+										"Description": "The planned date and time of the encounter.",
+										"OriginDataTypeName": {
+											"TypeName": "timestamp",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"TimestampFormat": "YYYY-MM-DD HH:MM:SS.fffffffff",
+												"HIVE_TYPE_STRING": "timestamp"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EncounterScheduledTimestamp"
+										}
+									},
+									{
+										"Name": "EncounterStartTimestamp",
+										"Description": "The period start timestamp of treatment between admission and discharge from a modality, e.g., inpatient, residential, partial hospitalization, and outpatient, or the period of time between the first procedure and last procedure on an outpatient basis for a given diagnosis. Many healthcare statistics and profiles use this unit as a base for comparisons.",
+										"OriginDataTypeName": {
+											"TypeName": "timestamp",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"TimestampFormat": "YYYY-MM-DD HH:MM:SS.fffffffff",
+												"HIVE_TYPE_STRING": "timestamp"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EncounterStartTimestamp"
+										}
+									},
+									{
+										"Name": "EncounterEndTimestamp",
+										"Description": "The period end timestamp of treatment between admission and discharge from a modality, e.g., inpatient, residential, partial hospitalization, and outpatient, or the period of time between the first procedure and last procedure on an outpatient basis for a given diagnosis. Many healthcare statistics and profiles use this unit as a base for comparisons.",
+										"OriginDataTypeName": {
+											"TypeName": "timestamp",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"TimestampFormat": "YYYY-MM-DD HH:MM:SS.fffffffff",
+												"HIVE_TYPE_STRING": "timestamp"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EncounterEndTimestamp"
+										}
+									},
+									{
+										"Name": "ServiceProviderId",
+										"Description": "The unique identifier of a Service Provider.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "ServiceProviderId"
+										}
+									},
+									{
+										"Name": "PatientId",
+										"Description": "The unique identifier of a Patient.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "PatientId"
+										}
+									},
+									{
+										"Name": "ClinicalTrialId",
+										"Description": "The unique identifier of a clinical trial.\naka 'clinicaltrials.gov identifier'\n\nEx:\nClinicalTrials.gov Identifier:  NCT00040742",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "ClinicalTrialId"
+										}
+									},
+									{
+										"Name": "SubjectId",
+										"Description": "The unique identifier of a Subject.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "SubjectId"
+										}
+									},
+									{
+										"Name": "ReferringServiceProviderId",
+										"Description": "The unique identifier of the referring Service Provider.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "ReferringServiceProviderId"
+										}
+									},
+									{
+										"Name": "AdmittingDiagnosisStatement",
+										"Description": "Words that your doctor uses to describe your condition",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 2048,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "AdmittingDiagnosisStatement"
+										}
+									},
+									{
+										"Name": "PrincipalDiagnosisStatement",
+										"Description": "The medical condition that is ultimately determined to have caused a patient's admission to the hospital. The principal diagnosis is used to assign every patient to a diagnosis related group. This diagnosis may differ from the admitting and major diagnoses.",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 2048,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "PrincipalDiagnosisStatement"
+										}
+									},
+									{
+										"Name": "EndOfEncounterDiagnosisStatement",
+										"Description": "The final diagnosis associated with the encounter, which means identifying a disease by its signs, symptoms, and laboratory findings",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 2048,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EndOfEncounterDiagnosisStatement"
+										}
+									},
+									{
+										"Name": "MemberBeneficiaryLiabilityStatement",
+										"Description": "A statement that you are responsible for some treatments or charges.",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 2048,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "MemberBeneficiaryLiabilityStatement"
+										}
+									},
+									{
+										"Name": "LengthOfStay",
+										"Description": "LOS expressed in hours refers to the length of stay. It is a term used by insurance companies, case managers and/or employers to describe the amount of time an individual stays in a hospital or in-patient facility.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "LengthOfStay"
+										}
+									},
+									{
+										"Name": "CaseManagerId",
+										"Description": "The unique identifier of a case manager.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "CaseManagerId"
+										}
+									},
+									{
+										"Name": "TriageClassificationId",
+										"Description": "The unique identifier of a Triage Classification.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "TriageClassificationId"
+										}
+									},
+									{
+										"Name": "AdmissionLevelOfCareId",
+										"Description": "The unique identifier of an Admission Level Of Care.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "AdmissionLevelOfCareId"
+										}
+									},
+									{
+										"Name": "HealthProgramId",
+										"Description": "The unique identifier of a Product.",
+										"OriginDataTypeName": {
+											"TypeName": "long",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "long"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "HealthProgramId"
+										}
+									},
+									{
+										"Name": "MedicaidCaseName",
+										"Description": "The case name assigned by Medicaid.",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 256,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "MedicaidCaseName"
+										}
+									},
+									{
+										"Name": "MedicaidCaseNumber",
+										"Description": "The case number assigned by Medicaid.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "MedicaidCaseNumber"
+										}
+									},
+									{
+										"Name": "EncounterNote",
+										"Description": "Notes, comments or additional information regarding the encounter.",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 2048,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EncounterNote"
+										}
+									},
+									{
+										"Name": "HealthcareFacilityId",
+										"Description": "The unique identifier of a Healthcare Facility.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "HealthcareFacilityId"
+										}
+									},
+									{
+										"Name": "FacilityFloorplanLocationId",
+										"Description": "The unique identifier of a Facility Floorplan Location.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "FacilityFloorplanLocationId"
+										}
+									},
+									{
+										"Name": "LocationId",
+										"Description": "The unique identifier of a Location.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "LocationId"
+										}
+									},
+									{
+										"Name": "MemberPreauthorizationCode",
+										"Description": "The preauthorization code assigned to the member. The number stating that your treatment has been approved by your insurance plan.",
+										"OriginDataTypeName": {
+											"TypeName": "string",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Length": 5,
+											"Properties": {
+												"HIVE_TYPE_STRING": "string"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "MemberPreauthorizationCode"
+										}
+									},
+									{
+										"Name": "ResultOfWorkRelatedAccidentIndicator",
+										"Description": "Indicates that the encounter is a result of a work-related accident.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "ResultOfWorkRelatedAccidentIndicator"
+										}
+									},
+									{
+										"Name": "UncompensatedCareIndicator",
+										"Description": "Service provided by physicians and hospitals for which no payment is received from the patient or from third-party payers. \n\nSome costs for these services may be covered through cost-shifting. Not all uncompensated care results from charity care. It also includes bad debts from persons who are not classified as charity cases but who are unable or unwilling to pay their bill. See cost shifting.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "UncompensatedCareIndicator"
+										}
+									},
+									{
+										"Name": "OutOfNetworkEncounterIndicator",
+										"Description": "Services performed by a provider who has not signed a contract with the member's health plan to be part of a provider network.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "OutOfNetworkEncounterIndicator"
+										}
+									},
+									{
+										"Name": "ReferralRequiredIndicator",
+										"Description": "Indicates that a referral is required as a result of the encounter.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "ReferralRequiredIndicator"
+										}
+									},
+									{
+										"Name": "EmploymentIllnessRelatedIndicator",
+										"Description": "Indicates whether the illness was job-related.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EmploymentIllnessRelatedIndicator"
+										}
+									},
+									{
+										"Name": "DisabledIndicator",
+										"Description": "Indicates if the encounter is due to a disability.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "DisabledIndicator"
+										}
+									},
+									{
+										"Name": "ReAdmissionIndicator",
+										"Description": "Indicates whether the Encounter is the result of a re-admission.",
+										"OriginDataTypeName": {
+											"TypeName": "boolean",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "boolean"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "ReAdmissionIndicator"
+										}
+									},
+									{
+										"Name": "EncounterTypeId",
+										"Description": "The unique identifier of an Encounter Type.",
+										"OriginDataTypeName": {
+											"TypeName": "integer",
+											"IsComplexType": false,
+											"IsNullable": true,
+											"Properties": {
+												"HIVE_TYPE_STRING": "integer"
+											}
+										},
+										"BaseAttributeReference": {
+											"Entity": "Encounter.cdm.json/Encounter",
+											"Name": "EncounterTypeId"
+										}
+									}
+								],
+								"Format": {
+									"InputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat",
+									"OutputFormat": "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat",
+									"FormatType": "parquet",
+									"SerializeLib": "org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe",
+									"Properties": {
+										"path": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Encounter",
+										"FormatTypeSetToDatabaseDefault": true
+									}
+								},
+								"Source": {
+									"Provider": "ADLS",
+									"Location": "abfss://lakedatabase@ads3tf6pxfizs3rgpoc.dfs.core.windows.net/HealthcareProviders/Encounter",
+									"Properties": {
+										"LinkedServiceName": "ADLS",
+										"LocationSetToDatabaseDefault": true
+									}
+								},
+								"Properties": {
+									"textinputformat.record.delimiter": ",",
+									"compression": "{\"type\":\"Snappy\",\"level\":\"optimal\"}",
+									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"EncounterId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterId\"},\"EncounterScheduledTimestamp\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterScheduledTimestamp\"},\"EncounterStartTimestamp\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterStartTimestamp\"},\"EncounterEndTimestamp\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterEndTimestamp\"},\"ServiceProviderId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ServiceProviderId\"},\"PatientId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"PatientId\"},\"ClinicalTrialId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ClinicalTrialId\"},\"SubjectId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"SubjectId\"},\"ReferringServiceProviderId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ReferringServiceProviderId\"},\"AdmittingDiagnosisStatement\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"AdmittingDiagnosisStatement\"},\"PrincipalDiagnosisStatement\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"PrincipalDiagnosisStatement\"},\"EndOfEncounterDiagnosisStatement\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EndOfEncounterDiagnosisStatement\"},\"MemberBeneficiaryLiabilityStatement\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MemberBeneficiaryLiabilityStatement\"},\"LengthOfStay\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"LengthOfStay\"},\"CaseManagerId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"CaseManagerId\"},\"TriageClassificationId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"TriageClassificationId\"},\"AdmissionLevelOfCareId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"AdmissionLevelOfCareId\"},\"HealthProgramId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"HealthProgramId\"},\"MedicaidCaseName\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MedicaidCaseName\"},\"MedicaidCaseNumber\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MedicaidCaseNumber\"},\"EncounterNote\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterNote\"},\"HealthcareFacilityId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"HealthcareFacilityId\"},\"FacilityFloorplanLocationId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"FacilityFloorplanLocationId\"},\"LocationId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"LocationId\"},\"MemberPreauthorizationCode\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MemberPreauthorizationCode\"},\"ResultOfWorkRelatedAccidentIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ResultOfWorkRelatedAccidentIndicator\"},\"UncompensatedCareIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"UncompensatedCareIndicator\"},\"OutOfNetworkEncounterIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"OutOfNetworkEncounterIndicator\"},\"ReferralRequiredIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ReferralRequiredIndicator\"},\"EmploymentIllnessRelatedIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EmploymentIllnessRelatedIndicator\"},\"DisabledIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"DisabledIndicator\"},\"ReAdmissionIndicator\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ReAdmissionIndicator\"},\"EncounterTypeId\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterTypeId\"}}}"
+								},
+								"Compressed": false,
+								"IsStoredAsSubdirectories": false
+							},
+							"Properties": {
+								"DerivedModelEntityInfo": "{\"entityDirectives\":{\"name\":\"Encounter\",\"description\":\"A contact between an individual and the health care system for a health care service or set of services related to one or more medical conditions involving one or more tests, service, medical procedures, products, items, ancillary services etc. \\n\\nSome organizations refer to this as an Episode of Care, while others prefer to think of a group of related Encounters as an Episode of Care.\",\"baseEntityReference\":{\"name\":\"Encounter\",\"path\":\"Encounter.cdm.json/Encounter\"},\"projectionInfo\":{\"attributes\":[{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterId\"},\"dataType\":\"long\",\"description\":\"The unique identifier of an Encounter with a Service Provider.\",\"isNullable\":false,\"name\":\"EncounterId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterScheduledTimestamp\"},\"dataType\":\"timestamp\",\"description\":\"The planned date and time of the encounter.\",\"isNullable\":true,\"name\":\"EncounterScheduledTimestamp\",\"timestampFormat\":\"YYYY-MM-DD HH:MM:SS.fffffffff\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterStartTimestamp\"},\"dataType\":\"timestamp\",\"description\":\"The period start timestamp of treatment between admission and discharge from a modality, e.g., inpatient, residential, partial hospitalization, and outpatient, or the period of time between the first procedure and last procedure on an outpatient basis for a given diagnosis. Many healthcare statistics and profiles use this unit as a base for comparisons.\",\"isNullable\":true,\"name\":\"EncounterStartTimestamp\",\"timestampFormat\":\"YYYY-MM-DD HH:MM:SS.fffffffff\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterEndTimestamp\"},\"dataType\":\"timestamp\",\"description\":\"The period end timestamp of treatment between admission and discharge from a modality, e.g., inpatient, residential, partial hospitalization, and outpatient, or the period of time between the first procedure and last procedure on an outpatient basis for a given diagnosis. Many healthcare statistics and profiles use this unit as a base for comparisons.\",\"isNullable\":true,\"name\":\"EncounterEndTimestamp\",\"timestampFormat\":\"YYYY-MM-DD HH:MM:SS.fffffffff\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ServiceProviderId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Service Provider.\",\"isNullable\":true,\"name\":\"ServiceProviderId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"PatientId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Patient.\",\"isNullable\":true,\"name\":\"PatientId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ClinicalTrialId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a clinical trial.\\naka 'clinicaltrials.gov identifier'\\n\\nEx:\\nClinicalTrials.gov Identifier:  NCT00040742\",\"isNullable\":true,\"name\":\"ClinicalTrialId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"SubjectId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Subject.\",\"isNullable\":true,\"name\":\"SubjectId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ReferringServiceProviderId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of the referring Service Provider.\",\"isNullable\":true,\"name\":\"ReferringServiceProviderId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"AdmittingDiagnosisStatement\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"Words that your doctor uses to describe your condition\",\"isNullable\":true,\"name\":\"AdmittingDiagnosisStatement\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"PrincipalDiagnosisStatement\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"The medical condition that is ultimately determined to have caused a patient's admission to the hospital. The principal diagnosis is used to assign every patient to a diagnosis related group. This diagnosis may differ from the admitting and major diagnoses.\",\"isNullable\":true,\"name\":\"PrincipalDiagnosisStatement\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EndOfEncounterDiagnosisStatement\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"The final diagnosis associated with the encounter, which means identifying a disease by its signs, symptoms, and laboratory findings\",\"isNullable\":true,\"name\":\"EndOfEncounterDiagnosisStatement\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MemberBeneficiaryLiabilityStatement\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"A statement that you are responsible for some treatments or charges.\",\"isNullable\":true,\"name\":\"MemberBeneficiaryLiabilityStatement\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"LengthOfStay\"},\"dataType\":\"integer\",\"description\":\"LOS expressed in hours refers to the length of stay. It is a term used by insurance companies, case managers and/or employers to describe the amount of time an individual stays in a hospital or in-patient facility.\",\"isNullable\":true,\"name\":\"LengthOfStay\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"CaseManagerId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a case manager.\",\"isNullable\":true,\"name\":\"CaseManagerId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"TriageClassificationId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Triage Classification.\",\"isNullable\":true,\"name\":\"TriageClassificationId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"AdmissionLevelOfCareId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of an Admission Level Of Care.\",\"isNullable\":true,\"name\":\"AdmissionLevelOfCareId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"HealthProgramId\"},\"dataType\":\"long\",\"description\":\"The unique identifier of a Product.\",\"isNullable\":true,\"name\":\"HealthProgramId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MedicaidCaseName\"},\"dataType\":\"string\",\"dataTypeLength\":256,\"description\":\"The case name assigned by Medicaid.\",\"isNullable\":true,\"name\":\"MedicaidCaseName\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MedicaidCaseNumber\"},\"dataType\":\"integer\",\"description\":\"The case number assigned by Medicaid.\",\"isNullable\":true,\"name\":\"MedicaidCaseNumber\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterNote\"},\"dataType\":\"string\",\"dataTypeLength\":2048,\"description\":\"Notes, comments or additional information regarding the encounter.\",\"isNullable\":true,\"name\":\"EncounterNote\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"HealthcareFacilityId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Healthcare Facility.\",\"isNullable\":true,\"name\":\"HealthcareFacilityId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"FacilityFloorplanLocationId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Facility Floorplan Location.\",\"isNullable\":true,\"name\":\"FacilityFloorplanLocationId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"LocationId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of a Location.\",\"isNullable\":true,\"name\":\"LocationId\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"MemberPreauthorizationCode\"},\"dataType\":\"string\",\"dataTypeLength\":5,\"description\":\"The preauthorization code assigned to the member. The number stating that your treatment has been approved by your insurance plan.\",\"isNullable\":true,\"name\":\"MemberPreauthorizationCode\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ResultOfWorkRelatedAccidentIndicator\"},\"dataType\":\"boolean\",\"description\":\"Indicates that the encounter is a result of a work-related accident.\",\"isNullable\":true,\"name\":\"ResultOfWorkRelatedAccidentIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"UncompensatedCareIndicator\"},\"dataType\":\"boolean\",\"description\":\"Service provided by physicians and hospitals for which no payment is received from the patient or from third-party payers. \\n\\nSome costs for these services may be covered through cost-shifting. Not all uncompensated care results from charity care. It also includes bad debts from persons who are not classified as charity cases but who are unable or unwilling to pay their bill. See cost shifting.\",\"isNullable\":true,\"name\":\"UncompensatedCareIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"OutOfNetworkEncounterIndicator\"},\"dataType\":\"boolean\",\"description\":\"Services performed by a provider who has not signed a contract with the member's health plan to be part of a provider network.\",\"isNullable\":true,\"name\":\"OutOfNetworkEncounterIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ReferralRequiredIndicator\"},\"dataType\":\"boolean\",\"description\":\"Indicates that a referral is required as a result of the encounter.\",\"isNullable\":true,\"name\":\"ReferralRequiredIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EmploymentIllnessRelatedIndicator\"},\"dataType\":\"boolean\",\"description\":\"Indicates whether the illness was job-related.\",\"isNullable\":true,\"name\":\"EmploymentIllnessRelatedIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"DisabledIndicator\"},\"dataType\":\"boolean\",\"description\":\"Indicates if the encounter is due to a disability.\",\"isNullable\":true,\"name\":\"DisabledIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"ReAdmissionIndicator\"},\"dataType\":\"boolean\",\"description\":\"Indicates whether the Encounter is the result of a re-admission.\",\"isNullable\":true,\"name\":\"ReAdmissionIndicator\"},{\"type\":\"Existing\",\"attributeReference\":{\"entity\":\"Encounter.cdm.json/Encounter\",\"name\":\"EncounterTypeId\"},\"dataType\":\"integer\",\"description\":\"The unique identifier of an Encounter Type.\",\"isNullable\":true,\"name\":\"EncounterTypeId\"}]},\"primaryKey\":[\"EncounterId\"]}}",
+								"Description": "A contact between an individual and the health care system for a health care service or set of services related to one or more medical conditions involving one or more tests, service, medical procedures, products, items, ancillary services etc. \n\nSome organizations refer to this as an Episode of Care, while others prefer to think of a group of related Encounters as an Episode of Care.",
+								"DisplayFolderInfo": "{\"name\":\"Encounter\",\"colorCode\":\"#042C59\"}",
+								"PrimaryKeys": "EncounterId",
 								"spark.sql.sources.provider": "parquet"
 							},
 							"Retention": 0,
@@ -5510,7 +6967,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"ProductId\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"ProductId\"},\"ProductName\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"ProductName\"},\"ProductInternalName\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"ProductInternalName\"},\"ProductDescription\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"ProductDescription\"},\"IntroductionDate\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"IntroductionDate\"},\"AvailabilityPeriodStartDate\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"AvailabilityPeriodStartDate\"},\"AvailabilityPeriodEndDate\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"AvailabilityPeriodEndDate\"},\"AbandonmentDate\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"AbandonmentDate\"},\"BrandMark\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"BrandMark\"},\"Trademark\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"Trademark\"},\"OfferingLogo\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"OfferingLogo\"},\"OfferingPriceAmount\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"OfferingPriceAmount\"},\"BrandCategoryId\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"BrandCategoryId\"},\"BrandTypeId\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"BrandTypeId\"},\"ItemSku\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"ItemSku\"},\"ProductTypeId\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"ProductTypeId\"},\"PrimaryBrandId\":{\"entity\":\"HealthcareProduct.cdm.json/HealthcareProduct\",\"name\":\"PrimaryBrandId\"}}}"
 								},
 								"Compressed": false,
@@ -6984,7 +8441,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"ItemSku\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemSku\"},\"ItemName\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemName\"},\"ItemDescription\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemDescription\"},\"InformationLabelText\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"InformationLabelText\"},\"DescriptiveLabelText\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"DescriptiveLabelText\"},\"WarningInformationText\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"WarningInformationText\"},\"GradeLabelText\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"GradeLabelText\"},\"UniversalProductCode\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"UniversalProductCode\"},\"EuropeanArticleNumber\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"EuropeanArticleNumber\"},\"GlobalTradeItemNumber\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"GlobalTradeItemNumber\"},\"ItemElectronicProductCode\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemElectronicProductCode\"},\"ComponentPartIdentifier\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ComponentPartIdentifier\"},\"PluCode\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"PluCode\"},\"EngineeringReferenceNumber\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"EngineeringReferenceNumber\"},\"CopyrightNumber\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"CopyrightNumber\"},\"UlControlNumber\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"UlControlNumber\"},\"UlFileNumber\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"UlFileNumber\"},\"ItemNote\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemNote\"},\"ProductId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ProductId\"},\"AssetIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"AssetIndicator\"},\"ItemLength\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemLength\"},\"ItemWidth\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemWidth\"},\"ItemHeight\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemHeight\"},\"LwhUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"LwhUomId\"},\"ItemVolume\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemVolume\"},\"ItemVolumeUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemVolumeUomId\"},\"ItemWeight\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemWeight\"},\"WeightUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"WeightUomId\"},\"ShelfLifeDays\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ShelfLifeDays\"},\"MinimumStorageTemperature\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MinimumStorageTemperature\"},\"MinimumStorageTemperatureUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MinimumStorageTemperatureUomId\"},\"MaximumStorageTemperature\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MaximumStorageTemperature\"},\"MaximumStorageTemperatureUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MaximumStorageTemperatureUomId\"},\"MinimumStorageHumidity\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MinimumStorageHumidity\"},\"MinimumStorageHumidityUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MinimumStorageHumidityUomId\"},\"MaximumStorageHumidity\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MaximumStorageHumidity\"},\"MaximumStorageHumidityUomId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MaximumStorageHumidityUomId\"},\"StandardQuantityUnitOfMeasureId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StandardQuantityUnitOfMeasureId\"},\"StandardCost\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StandardCost\"},\"ListPrice\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ListPrice\"},\"StandardWholesalePrice\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StandardWholesalePrice\"},\"TargetReturnPrice\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"TargetReturnPrice\"},\"MarginAmount\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MarginAmount\"},\"VerbalBidsRequiredForMinimumAmountRange\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"VerbalBidsRequiredForMinimumAmountRange\"},\"VerbalBidsRequiredForMaximumAmountRange\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"VerbalBidsRequiredForMaximumAmountRange\"},\"WrittenBidsRequiredForMinimumAmountRange\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"WrittenBidsRequiredForMinimumAmountRange\"},\"WrittenBidsRequiredForMaximumAmountRange\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"WrittenBidsRequiredForMaximumAmountRange\"},\"CompetitiveBidsRequiredForMinimumAmountRange\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"CompetitiveBidsRequiredForMinimumAmountRange\"},\"CompetitiveBidsRequiredForMaximumAmountRange\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"CompetitiveBidsRequiredForMaximumAmountRange\"},\"LotSizeQuantity\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"LotSizeQuantity\"},\"MinimumOrderQuantity\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MinimumOrderQuantity\"},\"MinimumStockQuantity\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"MinimumStockQuantity\"},\"ActiveItemInventoryPeriodNumberOfDays\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ActiveItemInventoryPeriodNumberOfDays\"},\"PutAwayRulesStatement\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"PutAwayRulesStatement\"},\"EurobrandIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"EurobrandIndicator\"},\"StoreMixedIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StoreMixedIndicator\"},\"StoreToExistingItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StoreToExistingItemIndicator\"},\"StoreToExistingLotIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StoreToExistingLotIndicator\"},\"SoleSourceItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"SoleSourceItemIndicator\"},\"SoleSourceSupplierName\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"SoleSourceSupplierName\"},\"LifedItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"LifedItemIndicator\"},\"InStockOutOfStockIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"InStockOutOfStockIndicator\"},\"HazardousMaterialIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"HazardousMaterialIndicator\"},\"ActiveInventoryItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ActiveInventoryItemIndicator\"},\"EligibleForExportIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"EligibleForExportIndicator\"},\"CoManagedInventoryItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"CoManagedInventoryItemIndicator\"},\"RotableItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"RotableItemIndicator\"},\"ConsignmentItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ConsignmentItemIndicator\"},\"SerializedItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"SerializedItemIndicator\"},\"TrackSerialNumberIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"TrackSerialNumberIndicator\"},\"RepairableItemIndicator\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"RepairableItemIndicator\"},\"RepairPeriod\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"RepairPeriod\"},\"ManufacturerId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ManufacturerId\"},\"ItemIdentificationMethodId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemIdentificationMethodId\"},\"CommodityTypeId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"CommodityTypeId\"},\"ItemSafetyClassificationId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemSafetyClassificationId\"},\"StandardStorageUnitTypeId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"StandardStorageUnitTypeId\"},\"SecurityLevelId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"SecurityLevelId\"},\"VendorId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"VendorId\"},\"FamilyGroupId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"FamilyGroupId\"},\"HazardSeverityCategoryId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"HazardSeverityCategoryId\"},\"DepreciationMethodId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"DepreciationMethodId\"},\"ItemTypeId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"ItemTypeId\"},\"BarCodeId\":{\"entity\":\"Item.cdm.json/Item\",\"name\":\"BarCodeId\"}}}"
 								},
 								"Compressed": false,
@@ -8341,7 +9798,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"OrderId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderId\"},\"OrderConfirmationNumber\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderConfirmationNumber\"},\"OrderEnteredByEmployeeId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderEnteredByEmployeeId\"},\"NumberOfOrderLines\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"NumberOfOrderLines\"},\"OrderReceivedTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderReceivedTimestamp\"},\"OrderEntryTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderEntryTimestamp\"},\"CustomerCreditCheckTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"CustomerCreditCheckTimestamp\"},\"OrderConfirmationTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderConfirmationTimestamp\"},\"OrderRequestedDeliveryDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderRequestedDeliveryDate\"},\"OrderCommittedDeliveryDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderCommittedDeliveryDate\"},\"ShipmentConfirmationTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ShipmentConfirmationTimestamp\"},\"OrderActualDeliveryTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderActualDeliveryTimestamp\"},\"OrderTotalRetailPriceAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalRetailPriceAmount\"},\"OrderTotalActualSalesPriceAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalActualSalesPriceAmount\"},\"OrderTotalAdjustmentPercentage\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalAdjustmentPercentage\"},\"OrderTotalAdjustmentAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalAdjustmentAmount\"},\"OrderTotalAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalAmount\"},\"TotalShippingChargeAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"TotalShippingChargeAmount\"},\"OrderTotalTaxAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalTaxAmount\"},\"OrderTotalInvoicedAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTotalInvoicedAmount\"},\"TotalGratuityAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"TotalGratuityAmount\"},\"TotalPaidAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"TotalPaidAmount\"},\"TotalCommissionsPayableAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"TotalCommissionsPayableAmount\"},\"SplitCommissionsIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"SplitCommissionsIndicator\"},\"OrderBookedDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderBookedDate\"},\"OrderBilledDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderBilledDate\"},\"OrderBacklogReportedDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderBacklogReportedDate\"},\"OrderBacklogReleasedDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderBacklogReleasedDate\"},\"OrderCancellationDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderCancellationDate\"},\"OrderReturnedDate\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderReturnedDate\"},\"ShipmentToName\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ShipmentToName\"},\"ShipmentToLocationId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ShipmentToLocationId\"},\"ShipmentId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ShipmentId\"},\"CarrierId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"CarrierId\"},\"ShipmentMethodId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ShipmentMethodId\"},\"RequestedShipmentCarrierName\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"RequestedShipmentCarrierName\"},\"AlternateCarrierAcceptableIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"AlternateCarrierAcceptableIndicator\"},\"ActualShipmentCarrierName\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ActualShipmentCarrierName\"},\"ShipOrderCompleteIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ShipOrderCompleteIndicator\"},\"TotalOrderWeight\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"TotalOrderWeight\"},\"WeightUomId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"WeightUomId\"},\"TotalOrderFreightChargeAmount\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"TotalOrderFreightChargeAmount\"},\"EarliestDeliveryWindowTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"EarliestDeliveryWindowTimestamp\"},\"LatestDeliveryWindowTimestamp\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"LatestDeliveryWindowTimestamp\"},\"AcknowledgementRequiredIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"AcknowledgementRequiredIndicator\"},\"ExpediteOrderIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ExpediteOrderIndicator\"},\"DropShipmentIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"DropShipmentIndicator\"},\"ServiceOrderIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ServiceOrderIndicator\"},\"ProductOrderIndicator\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ProductOrderIndicator\"},\"OrderDeliveryInstructions\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderDeliveryInstructions\"},\"CustomerCreditCheckNote\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"CustomerCreditCheckNote\"},\"MessageToCustomer\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"MessageToCustomer\"},\"CustomerId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"CustomerId\"},\"CustomerAccountId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"CustomerAccountId\"},\"WarehouseId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"WarehouseId\"},\"StoreId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"StoreId\"},\"CustomerIdentificationMethodId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"CustomerIdentificationMethodId\"},\"PoNumber\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"PoNumber\"},\"MarketingEventId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"MarketingEventId\"},\"AdvertisingEventId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"AdvertisingEventId\"},\"SalesMethodId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"SalesMethodId\"},\"PaymentMethodId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"PaymentMethodId\"},\"BillingCycleId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"BillingCycleId\"},\"ContractId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ContractId\"},\"SalesChannelId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"SalesChannelId\"},\"DistributionChannelId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"DistributionChannelId\"},\"OrderTypeId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderTypeId\"},\"OrderClassificationId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderClassificationId\"},\"RejectionReasonId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"RejectionReasonId\"},\"OrderProcessingStatusId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"OrderProcessingStatusId\"},\"IsoCurrencyCode\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"IsoCurrencyCode\"},\"PointOfSaleId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"PointOfSaleId\"},\"ResponsibilityCenterId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"ResponsibilityCenterId\"},\"VendorId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"VendorId\"},\"DeviceId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"DeviceId\"},\"SoftwareProductId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"SoftwareProductId\"},\"SoftwareProductVersionNumber\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"SoftwareProductVersionNumber\"},\"PromotionOfferId\":{\"entity\":\"Order.cdm.json/Order\",\"name\":\"PromotionOfferId\"}}}"
 								},
 								"Compressed": false,
@@ -9661,7 +11118,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"TransactionId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionId\"},\"TransactionInitiatedTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionInitiatedTimestamp\"},\"TransactionCompletedTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionCompletedTimestamp\"},\"TransactionReceivedTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionReceivedTimestamp\"},\"TransactionEntryTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionEntryTimestamp\"},\"TransactionConfirmationTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionConfirmationTimestamp\"},\"CreditCheckTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"CreditCheckTimestamp\"},\"RequestedDeliveryDate\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"RequestedDeliveryDate\"},\"CommittedDeliveryDate\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"CommittedDeliveryDate\"},\"ActualDeliveryTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ActualDeliveryTimestamp\"},\"DeliveryConfirmationTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"DeliveryConfirmationTimestamp\"},\"TransactionAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionAmount\"},\"ShipmentToName\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ShipmentToName\"},\"ShipmentToLocationId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ShipmentToLocationId\"},\"TransactionConfirmationNumber\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionConfirmationNumber\"},\"IdentificationCheckedIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"IdentificationCheckedIndicator\"},\"IdentificationId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"IdentificationId\"},\"TotalRetailPriceAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalRetailPriceAmount\"},\"TotalAdjustmentPercentage\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalAdjustmentPercentage\"},\"TotalAdjustmentAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalAdjustmentAmount\"},\"TotalTransactionSalesPriceAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalTransactionSalesPriceAmount\"},\"TotalShippingChargeAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalShippingChargeAmount\"},\"TransactionTotalTaxAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionTotalTaxAmount\"},\"TransactionRoundingAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionRoundingAmount\"},\"TransactionTotalInvoicedAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionTotalInvoicedAmount\"},\"TotalCommissionsPayableAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalCommissionsPayableAmount\"},\"SplitCommissionsIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"SplitCommissionsIndicator\"},\"RequestedShipmentCarrierName\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"RequestedShipmentCarrierName\"},\"AlternateCarrierAcceptableIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"AlternateCarrierAcceptableIndicator\"},\"ShipCompleteIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ShipCompleteIndicator\"},\"AcknowledgementRequiredIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"AcknowledgementRequiredIndicator\"},\"ExpediteTransactionIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ExpediteTransactionIndicator\"},\"DropShipmentIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"DropShipmentIndicator\"},\"ActualShipmentCarrierName\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ActualShipmentCarrierName\"},\"TotalWeight\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalWeight\"},\"TotalFreightChargeAmount\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TotalFreightChargeAmount\"},\"UnitOfMeasureId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"UnitOfMeasureId\"},\"EarliestDeliveryWindowTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"EarliestDeliveryWindowTimestamp\"},\"LatestDeliveryWindowTimestamp\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"LatestDeliveryWindowTimestamp\"},\"DeliveryInstructions\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"DeliveryInstructions\"},\"CustomerCreditCheckNote\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"CustomerCreditCheckNote\"},\"MessageToCustomer\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"MessageToCustomer\"},\"CustomerId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"CustomerId\"},\"CustomerAccountId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"CustomerAccountId\"},\"PurchasingChannelId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"PurchasingChannelId\"},\"SalesChannelId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"SalesChannelId\"},\"DistributionChannelId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"DistributionChannelId\"},\"MarketingEventId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"MarketingEventId\"},\"AdvertisingEventId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"AdvertisingEventId\"},\"PromotionId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"PromotionId\"},\"PartialReturnIndicator\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"PartialReturnIndicator\"},\"TransactionTypeId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionTypeId\"},\"BillingCycleId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"BillingCycleId\"},\"MerchantId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"MerchantId\"},\"CustomerIdentificationMethodId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"CustomerIdentificationMethodId\"},\"TransactionClassificationId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionClassificationId\"},\"TransactionProcessingStatusId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionProcessingStatusId\"},\"IsoCurrencyCode\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"IsoCurrencyCode\"},\"TransactionExecutionMethodId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionExecutionMethodId\"},\"TransactionPriorityId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionPriorityId\"},\"TransactionTaxStatusId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionTaxStatusId\"},\"WebPageUrl\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"WebPageUrl\"},\"SessionId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"SessionId\"},\"WorkstationSessionId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"WorkstationSessionId\"},\"PointOfSaleId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"PointOfSaleId\"},\"StoreId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"StoreId\"},\"WarehouseId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"WarehouseId\"},\"ResponsibilityCenterId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ResponsibilityCenterId\"},\"TransactionNote\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"TransactionNote\"},\"ShipmentMethodId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ShipmentMethodId\"},\"DeviceId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"DeviceId\"},\"SoftwareProductId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"SoftwareProductId\"},\"SoftwareProductVersionNumber\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"SoftwareProductVersionNumber\"},\"ApprovedByEmployeeId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"ApprovedByEmployeeId\"},\"PromotionOfferId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"PromotionOfferId\"},\"LoyaltyCardId\":{\"entity\":\"Transaction.cdm.json/Transaction\",\"name\":\"LoyaltyCardId\"}}}"
 								},
 								"Compressed": false,
@@ -10300,7 +11757,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"VendorId\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"VendorId\"},\"VendorName\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"VendorName\"},\"VendorNote\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"VendorNote\"},\"VendorTypeId\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"VendorTypeId\"},\"VendorDateOfEstablishment\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"VendorDateOfEstablishment\"},\"StateOfVendorEstablishment\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"StateOfVendorEstablishment\"},\"CountryOfVendorEstablishment\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"CountryOfVendorEstablishment\"},\"StateOfVendorResidence\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"StateOfVendorResidence\"},\"CountryOfVendorResidence\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"CountryOfVendorResidence\"},\"FirstDateOfOperation\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"FirstDateOfOperation\"},\"CurrentManagementFirstControlDate\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"CurrentManagementFirstControlDate\"},\"StockExchangeName\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"StockExchangeName\"},\"ListedSecuritySymbol\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"ListedSecuritySymbol\"},\"BankruptcyIndicator\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"BankruptcyIndicator\"},\"SmallBusinessIndicator\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"SmallBusinessIndicator\"},\"ManufacturingIndicator\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"ManufacturingIndicator\"},\"ForeignOwnedIndicator\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"ForeignOwnedIndicator\"},\"DunsNumber\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunsNumber\"},\"DunBradstreetSingleLocationSubsidiary\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetSingleLocationSubsidiary\"},\"DunBradstreetHeadquarters\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetHeadquarters\"},\"DunBradstreetBranch\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetBranch\"},\"DunBradstreetDivision\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetDivision\"},\"DunBradstreetSubsidiary\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetSubsidiary\"},\"DunBradstreetParent\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetParent\"},\"DunBradstreetUltimate\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetUltimate\"},\"DunBradstreetGlobalUltimate\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"DunBradstreetGlobalUltimate\"},\"LegalEntityFormId\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"LegalEntityFormId\"},\"ResponsibilityCenterId\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"ResponsibilityCenterId\"},\"LedgerId\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"LedgerId\"},\"LedgerAccountNumber\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"LedgerAccountNumber\"},\"NaicsNationalIndustryCode\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"NaicsNationalIndustryCode\"},\"SicIndustryCode\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"SicIndustryCode\"},\"AnzsicClassCode\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"AnzsicClassCode\"},\"IsoCurrencyCode\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"IsoCurrencyCode\"},\"PartyId\":{\"entity\":\"Vendor.cdm.json/Vendor\",\"name\":\"PartyId\"}}}"
 								},
 								"Compressed": false,
@@ -10672,7 +12129,7 @@
 								},
 								"Properties": {
 									"textinputformat.record.delimiter": ",",
-									"compression": "{\"type\":\"None\",\"level\":\"optimal\"}",
+									"compression": "",
 									"derivedModelAttributeInfo": "{\"attributeReferences\":{\"WarehouseId\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseId\"},\"WarehouseName\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseName\"},\"LocationId\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"LocationId\"},\"GlobalLocationNumber\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"GlobalLocationNumber\"},\"WarehouseTelephoneNumber\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseTelephoneNumber\"},\"WarehouseFaxNumber\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseFaxNumber\"},\"WarehouseEmailAddress\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseEmailAddress\"},\"PickAndPackLeadTime\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"PickAndPackLeadTime\"},\"WarehouseOrderCutoffTime\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseOrderCutoffTime\"},\"TotalFloorSpace\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"TotalFloorSpace\"},\"TotalFloorInventoryStorageSpace\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"TotalFloorInventoryStorageSpace\"},\"StorageSpaceUnitOfMeasureId\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"StorageSpaceUnitOfMeasureId\"},\"ContractWarehouseIndicator\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"ContractWarehouseIndicator\"},\"StoreId\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"StoreId\"},\"CustomerId\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"CustomerId\"},\"CustomerOwnedWarehouseIndicator\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"CustomerOwnedWarehouseIndicator\"},\"CustomerManagedWarehouseIndicator\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"CustomerManagedWarehouseIndicator\"},\"InventoryOwnedByCustomerIndicator\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"InventoryOwnedByCustomerIndicator\"},\"WarehouseTypeId\":{\"entity\":\"Warehouse.cdm.json/Warehouse\",\"name\":\"WarehouseTypeId\"}}}"
 								},
 								"Compressed": false,
@@ -10716,6 +12173,35 @@
 							"RelationshipType": 0,
 							"Properties": {
 								"DerivedModelRelationshipInfo": "{\"baseRelationship\":{\"fromEntity\":\"Vendor.cdm.json/Vendor\",\"toEntity\":\"Order.cdm.json/Order\",\"joinPairs\":[{\"fromAttribute\":\"VendorId\",\"toAttribute\":\"VendorId\"}]}}"
+							}
+						},
+						"Source": {
+							"Type": "SPARK"
+						}
+					},
+					{
+						"ActionType": "CREATE",
+						"OldEntity": null,
+						"NewEntity": {
+							"Name": "relationship-hmqhuloqdt",
+							"EntityType": "RELATIONSHIP",
+							"Namespace": {
+								"DatabaseName": "HealthcareProviders_6e9"
+							},
+							"Origin": {
+								"Type": "SPARK"
+							},
+							"FromTableName": "Encounter",
+							"ToTableName": "CaseEncounter",
+							"ColumnRelationshipInformations": [
+								{
+									"FromColumnName": "EncounterId",
+									"ToColumnName": "EncounterId"
+								}
+							],
+							"RelationshipType": 0,
+							"Properties": {
+								"DerivedModelRelationshipInfo": "{\"baseRelationship\":{\"fromEntity\":\"Encounter.cdm.json/Encounter\",\"toEntity\":\"CaseEncounter.cdm.json/CaseEncounter\",\"joinPairs\":[{\"fromAttribute\":\"EncounterId\",\"toAttribute\":\"EncounterId\"}]}}"
 							}
 						},
 						"Source": {
