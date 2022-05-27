@@ -1,0 +1,183 @@
+{
+	"name": "CopyDataTest",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlDWSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlPoolSink",
+						"allowCopyCommand": true,
+						"tableOption": "autoCreate"
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "ADLS",
+							"type": "LinkedServiceReference"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "medallion",
+									"type": "String"
+								},
+								"sink": {
+									"name": "medallion"
+								}
+							},
+							{
+								"source": {
+									"name": "hack_license",
+									"type": "String"
+								},
+								"sink": {
+									"name": "hack_license"
+								}
+							},
+							{
+								"source": {
+									"name": "vendor_id",
+									"type": "String"
+								},
+								"sink": {
+									"name": "vendor_id"
+								}
+							},
+							{
+								"source": {
+									"name": "rate_code",
+									"type": "String"
+								},
+								"sink": {
+									"name": "rate_code"
+								}
+							},
+							{
+								"source": {
+									"name": "store_and_fwd_flag",
+									"type": "String"
+								},
+								"sink": {
+									"name": "store_and_fwd_flag"
+								}
+							},
+							{
+								"source": {
+									"name": "pickup_datetime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pickup_datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "dropoff_datetime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "dropoff_datetime"
+								}
+							},
+							{
+								"source": {
+									"name": "passenger_count",
+									"type": "String"
+								},
+								"sink": {
+									"name": "passenger_count"
+								}
+							},
+							{
+								"source": {
+									"name": "trip_time_in_secs",
+									"type": "String"
+								},
+								"sink": {
+									"name": "trip_time_in_secs"
+								}
+							},
+							{
+								"source": {
+									"name": "trip_distance",
+									"type": "String"
+								},
+								"sink": {
+									"name": "trip_distance"
+								}
+							},
+							{
+								"source": {
+									"name": "pickup_longitude",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pickup_longitude"
+								}
+							},
+							{
+								"source": {
+									"name": "pickup_latitude",
+									"type": "String"
+								},
+								"sink": {
+									"name": "pickup_latitude"
+								}
+							},
+							{
+								"source": {
+									"name": "dropoff_longitude",
+									"type": "String"
+								},
+								"sink": {
+									"name": "dropoff_longitude"
+								}
+							},
+							{
+								"source": {
+									"name": "dropoff_latitude",
+									"type": "String"
+								},
+								"sink": {
+									"name": "dropoff_latitude"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSynapseAnalyticsTripsData",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "SqlPoolTable1",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}
